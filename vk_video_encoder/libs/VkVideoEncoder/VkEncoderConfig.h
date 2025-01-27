@@ -647,7 +647,7 @@ struct EncoderConfig : public VkVideoRefCountBase {
     enum { DEFAULT_NUM_INPUT_IMAGES = 16 };
     enum { DEFAULT_GOP_FRAME_COUNT = 16 };
     enum { DEFAULT_GOP_IDR_PERIOD  = 60 };
-    enum { DEFAULT_CONSECUTIVE_B_FRAME_COUNT = 3 };
+    enum { DEFAULT_CONSECUTIVE_B_FRAME_COUNT = 0 };
     enum { DEFAULT_TEMPORAL_LAYER_COUNT = 1 };
     enum { DEFAULT_NUM_SLICES_PER_PICTURE = 4 };
     enum { DEFAULT_MAX_NUM_REF_FRAMES = 16 };
@@ -753,7 +753,7 @@ public:
     , appName()
     , deviceId(-1)
     , queueId(0)
-    , codec(VK_VIDEO_CODEC_OPERATION_NONE_KHR)
+    , codec(VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR)
     , useDpbArray(false)
     , videoProfileIdc((uint32_t)-1)
     , numInputImages(DEFAULT_NUM_INPUT_IMAGES)

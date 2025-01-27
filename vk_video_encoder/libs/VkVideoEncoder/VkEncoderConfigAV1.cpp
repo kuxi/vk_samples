@@ -359,7 +359,7 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
     pRcInfoAV1->gopFrameCount = gopStructure.GetGopFrameCount();
     pRcInfoAV1->keyFramePeriod = gopStructure.GetIdrPeriod();
     pRcInfoAV1->consecutiveBipredictiveFrameCount = gopStructure.GetConsecutiveBFrameCount();
-    pRcInfoAV1->temporalLayerCount = 1;
+    pRcInfoAV1->temporalLayerCount = gopStructure.GetTemporalLayerCount();
 
     return true;
 }
