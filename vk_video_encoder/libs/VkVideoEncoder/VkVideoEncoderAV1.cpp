@@ -193,6 +193,9 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     }
 
     uint32_t flags = 0;
+    bool isKeyframe = (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_I) || (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_IDR);
+    m_temporal_layers.BeforeEncode(isKeyframe);
+    int temporal_layer = m_temporal_layers.GetTemporalLayer();
     if (pFrameInfo->gopPosition.pictureType != VkVideoGopStructure::FRAME_TYPE_B) {
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_I) &&
             (encodeFrameInfo->gopPosition.inputOrder == encodeFrameInfo->gopPosition.encodeOrder)) {
@@ -203,10 +206,10 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
                             (1 << STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME));
         }
     }
-    StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, flags, pFrameInfo->bIsReference);
-    InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, refName);
+    StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, temporal_layer, flags, pFrameInfo->bIsReference);
+    InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, temporal_layer, refName);
     if (!pFrameInfo->bShowExistingFrame) {
-        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
+        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, temporal_layer, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
         // For B pictures, L1 must be non zero.  Switch to P picture if L1 is zero.
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) && (m_dpbAV1->GetNumRefsL1()  == 0)) {
             pFrameInfo->gopPosition.pictureType = VkVideoGopStructure::FRAME_TYPE_P;
@@ -219,6 +222,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     int8_t dpbIndx = m_dpbAV1->DpbPictureStart(pFrameInfo->stdPictureInfo.frame_type, refName,
                                                pFrameInfo->picOrderCntVal,
                                                pFrameInfo->stdPictureInfo.current_frame_id,
+                                               temporal_layer,
                                                pFrameInfo->bShowExistingFrame, pFrameInfo->frameToShowBufId);
 
     assert(dpbIndx >= 0);
@@ -591,6 +595,7 @@ VkResult VkVideoEncoderAV1::HandleCtrlCmd(VkSharedBaseObj<VkVideoEncodeFrameInfo
 }
 
 void VkVideoEncoderAV1::InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequenceHdr, VkVideoEncodeFrameInfoAV1* pFrameInfo,
+                                              int temporal_layer,
                                               StdVideoAV1ReferenceName& refName)
 {
     // No overlay frame support. Instead display the ARF, ARF2 using show_existing_frame=1
@@ -666,12 +671,18 @@ void VkVideoEncoderAV1::InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequen
     pStdPictureInfo->primary_ref_frame = (uint8_t)m_dpbAV1->GetPrimaryRefFrame(pStdPictureInfo->frame_type, refName,
                                                                                pStdPictureInfo->flags.error_resilient_mode,
                                                                                pFrameInfo->bOverlayFrame);
+    pStdPictureInfo->primary_ref_frame = STD_VIDEO_AV1_PRIMARY_REF_NONE;
 
     pStdPictureInfo->pTileInfo = nullptr;
     pStdPictureInfo->pQuantization = nullptr;
     pStdPictureInfo->pLoopFilter = nullptr;
     pStdPictureInfo->pCDEF = nullptr;
     pStdPictureInfo->pLoopRestoration = nullptr;
+    pStdPictureInfo->pExtensionHeader = nullptr;
+
+    pStdPictureInfo->pExtensionHeader = &pFrameInfo->stdExtensionHeader;
+
+    pFrameInfo->stdExtensionHeader.temporal_id = temporal_layer;
 
     if (m_encoderConfig->enableTiles) {
         pStdPictureInfo->pTileInfo = &pFrameInfo->stdTileInfo;

@@ -21,6 +21,7 @@
 #include "VkVideoEncoder/VkVideoEncoder.h"
 #include "VkVideoEncoder/VkVideoEncoderStateAV1.h"
 #include "VkVideoEncoder/VkEncoderConfigAV1.h"
+#include "VkVideoEncoder/VkVideoTemporalLayers.h"
 
 class VkVideoEncoderAV1 : public VkVideoEncoder
 {
@@ -30,6 +31,7 @@ public:
 
         VkVideoEncodeAV1PictureInfoKHR pictureInfo;
         StdVideoEncodeAV1PictureInfo stdPictureInfo;
+        StdVideoEncodeAV1ExtensionHeader stdExtensionHeader;
         StdVideoAV1TileInfo stdTileInfo;
         uint16_t heightInSbsMinus1[STD_VIDEO_AV1_MAX_TILE_ROWS];
         uint16_t widthInSbsMinus1[STD_VIDEO_AV1_MAX_TILE_COLS];
@@ -52,6 +54,7 @@ public:
             : VkVideoEncodeFrameInfo(&pictureInfo)
             , pictureInfo{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_PICTURE_INFO_KHR }
             , stdPictureInfo{}
+            , stdExtensionHeader{}
             , stdTileInfo{}
             , stdQuantInfo{}
             , stdCdefInfo{}
@@ -190,6 +193,7 @@ private:
     }
 
     void InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequenceHdr, VkVideoEncodeFrameInfoAV1* pFrameInfo,
+            int temporal_layer,
                                StdVideoAV1ReferenceName& refName);
 
     VkSharedBaseObj<EncoderConfigAV1>   m_encoderConfig;
@@ -201,6 +205,7 @@ private:
     uint32_t                            m_numBFramesToEncode;
     std::set<uint32_t>                  m_batchFramesIndxSetToAssemble;
     std::vector<std::vector<uint8_t>>   m_bitstream;
+    VkVideoTemporalLayers               m_temporal_layers;
 
 };
 

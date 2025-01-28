@@ -40,7 +40,9 @@ enum VkVideoEncoderAV1FrameUpdateType {
     INTNL_OVERLAY_UPDATE = 5,   // Internal Overlay Frame
     INTNL_ARF_UPDATE    = 6,    // Internal Altref Frame
     BWD_UPDATE      = 7,        // backward Frame
-    NO_UPDATE       = 8,        // No update to reference frame management
+    LF2_UPDATE = 8,
+    LF3_UPDATE = 9,
+    NO_UPDATE       = 10,        // No update to reference frame management
 };
 
 struct DpbEntryAV1 {
@@ -51,6 +53,7 @@ struct DpbEntryAV1 {
     uint32_t picOrderCntVal; // display order relative to the last key frame
     StdVideoAV1FrameType frameType;
     StdVideoAV1ReferenceName refName;
+    int temporal_layer;
 
     // The YCbCr dpb image resource
     VkSharedBaseObj<VulkanVideoImagePoolNode>  dpbImageView;
@@ -117,6 +120,7 @@ public:
     int8_t DpbPictureStart(StdVideoAV1FrameType frameType,
                            StdVideoAV1ReferenceName refName,
                            uint32_t picOrderCntVal,uint32_t frameId,
+                           int temporal_layer,
                            bool bShowExistingFrame, int32_t frameToShowMapId);
     // 3. End Picture
     int8_t DpbPictureEnd(int8_t dpbIndx,
@@ -137,6 +141,7 @@ public:
     void FillStdReferenceInfo(uint8_t dpbIdx, StdVideoEncodeAV1ReferenceInfo* pStdReferenceInfo);
 
     StdVideoAV1ReferenceName AssignReferenceFrameType(VkVideoGopStructure::FrameType pictureType,
+                                                      int temporal_layer,
                                                       uint32_t refNameFlags, bool bRefPicFlag);
     VkVideoEncoderAV1FrameUpdateType GetFrameUpdateType(StdVideoAV1ReferenceName refName,
                                                         bool bOverlayFrame);
@@ -165,6 +170,7 @@ public:
                            VkVideoEncoderAV1FrameUpdateType frameUpdateType);
 
     void SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType,
+                                   int temporal_layer,
                                    StdVideoAV1FrameType frameType,
                                    uint32_t curPicOrderCntVal);
     int32_t GetDpbIdx(int32_t refNameMinus1) { return m_refName2DpbIdx[refNameMinus1]; }
