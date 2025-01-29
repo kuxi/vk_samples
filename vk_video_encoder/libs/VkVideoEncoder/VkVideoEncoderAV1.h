@@ -48,7 +48,7 @@ public:
         StdVideoEncodeAV1ReferenceInfo stdReferenceInfo[STD_VIDEO_AV1_REFS_PER_FRAME];
         VkVideoEncodeAV1DpbSlotInfoKHR dpbSlotInfo[STD_VIDEO_AV1_REFS_PER_FRAME];
         VkVideoEncodeAV1RateControlInfoKHR rateControlInfoAV1;
-        VkVideoEncodeAV1RateControlLayerInfoKHR rateControlLayersInfoAV1[1];
+        VkVideoEncodeAV1RateControlLayerInfoKHR rateControlLayersInfoAV1[3];
 
         VkVideoEncodeFrameInfoAV1()
             : VkVideoEncodeFrameInfo(&pictureInfo)
@@ -67,7 +67,9 @@ public:
             , bOverlayFrame{}
             , bIsReference{}
             , rateControlInfoAV1{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_INFO_KHR }
-            , rateControlLayersInfoAV1{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR }}
+            , rateControlLayersInfoAV1{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR },
+                { VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR },
+                { VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR }}
         {
             pictureInfo.pStdPictureInfo = &stdPictureInfo;
         }

@@ -63,7 +63,7 @@ struct EncoderConfigH264 : public EncoderConfig {
         : profileIdc(STD_VIDEO_H264_PROFILE_IDC_INVALID)
         , levelIdc(STD_VIDEO_H264_LEVEL_IDC_5_0)
         , h264EncodeCapabilities()
-        , hrdBitrate(maxBitrate)
+        , hrdBitrate(maxTotalBitrate)
         , pic_width_in_mbs(DivUp<uint32_t>(encodeWidth, 16))
         , pic_height_in_map_units(DivUp<uint32_t>(encodeHeight, 16))
         , entropyCodingMode(ENTROPY_CODING_MODE_CABAC)
@@ -163,7 +163,7 @@ struct EncoderConfigH264 : public EncoderConfig {
             return result;
         }
 
-        hrdBitrate = maxBitrate;
+        hrdBitrate = maxTotalBitrate;
         pic_width_in_mbs = DivUp<uint32_t>(encodeWidth, 16);
         pic_height_in_map_units = DivUp<uint32_t>(encodeHeight, 16);
 

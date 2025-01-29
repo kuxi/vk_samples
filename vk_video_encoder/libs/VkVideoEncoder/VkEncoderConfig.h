@@ -642,6 +642,15 @@ private:
     uint32_t m_verbose : 1;
 };
 
+struct LayerConfig {
+    public:
+        uint32_t averageBitrate; // kbits/sec
+        uint32_t maxBitrate;     // kbits/sec
+        uint32_t frameRateNumerator;
+        uint32_t frameRateDenominator;
+        
+};
+
 struct EncoderConfig : public VkVideoRefCountBase {
 
     enum { DEFAULT_NUM_INPUT_IMAGES = 16 };
@@ -687,8 +696,9 @@ public:
     VkVideoEncodeCapabilitiesKHR videoEncodeCapabilities;
     VkVideoEncodeQuantizationMapCapabilitiesKHR quantizationMapCapabilities;
     VkVideoEncodeRateControlModeFlagBitsKHR rateControlMode;
-    uint32_t averageBitrate; // kbits/sec
-    uint32_t maxBitrate;     // kbits/sec
+    uint32_t totalBitrate;    // kbits/sec
+    uint32_t maxTotalBitrate; // kbits/sec
+    LayerConfig layerConfigs[3];
     uint32_t hrdBitrate;
     uint32_t frameRateNumerator;
     uint32_t frameRateDenominator;
@@ -779,9 +789,9 @@ public:
     , videoEncodeCapabilities()
     , quantizationMapCapabilities()
     , rateControlMode(VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DEFAULT_KHR)
-    , averageBitrate()
-    , maxBitrate()
-    , hrdBitrate(maxBitrate)
+    , totalBitrate()
+    , layerConfigs()
+    , hrdBitrate(totalBitrate)
     , frameRateNumerator()
     , frameRateDenominator()
     , minQp(-1)

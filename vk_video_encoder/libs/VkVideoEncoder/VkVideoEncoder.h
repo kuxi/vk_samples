@@ -86,7 +86,9 @@ public:
             , pControlCmdChain(nullptr)
             , qualityLevelInfo { VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUALITY_LEVEL_INFO_KHR }
             , rateControlInfo { VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR }
-            , rateControlLayersInfo{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR }}
+            , rateControlLayersInfo{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR },
+                { VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR },
+                { VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR }}
             , referenceSlotsInfo{}
             , setupReferenceSlotInfo{ VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR }
             , videoSession()
@@ -138,7 +140,7 @@ public:
         VkBaseInStructure *                                pControlCmdChain;
         VkVideoEncodeQualityLevelInfoKHR                   qualityLevelInfo;
         VkVideoEncodeRateControlInfoKHR                    rateControlInfo;
-        VkVideoEncodeRateControlLayerInfoKHR               rateControlLayersInfo[1];
+        VkVideoEncodeRateControlLayerInfoKHR               rateControlLayersInfo[3];
         VkVideoReferenceSlotInfoKHR                        referenceSlotsInfo[MAX_IMAGE_REF_RESOURCES];
         VkVideoReferenceSlotInfoKHR                        setupReferenceSlotInfo;
         VkSharedBaseObj<VulkanVideoSession>                videoSession;
@@ -276,6 +278,8 @@ public:
             assert(qualityLevelInfo.sType == VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUALITY_LEVEL_INFO_KHR);
             assert(rateControlInfo.sType == VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR);
             assert(rateControlLayersInfo[0].sType == VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR);
+            assert(rateControlLayersInfo[1].sType == VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR);
+            assert(rateControlLayersInfo[2].sType == VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR);
             assert(referenceSlotsInfo[0].sType == VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR);
             assert(setupReferenceSlotInfo.sType == VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR);
 
@@ -433,7 +437,9 @@ public:
         , m_minStreamBufferSize(2 * 1024 * 1024)
         , m_streamBufferSize(m_minStreamBufferSize)
         , m_rateControlInfo{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR }
-        , m_rateControlLayersInfo{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR }}
+        , m_rateControlLayersInfo{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR },
+            { VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR },
+            { VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR }}
         , m_picIdxToDpb{}
         , m_gopState()
         , m_dpbSlotsMask(0)
@@ -676,7 +682,7 @@ protected:
     VkVideoEncodeQualityLevelInfoKHR      m_qualityLevelInfo;
     VkVideoEncodeRateControlInfoKHR       m_rateControlInfo;
     VkVideoEncodeRateControlInfoKHR       m_beginRateControlInfo;
-    VkVideoEncodeRateControlLayerInfoKHR  m_rateControlLayersInfo[1];
+    VkVideoEncodeRateControlLayerInfoKHR  m_rateControlLayersInfo[3];
     int8_t   m_picIdxToDpb[17]; // MAX_DPB_SLOTS + 1
     VkVideoGopStructure::GopState         m_gopState;
     uint32_t m_dpbSlotsMask;

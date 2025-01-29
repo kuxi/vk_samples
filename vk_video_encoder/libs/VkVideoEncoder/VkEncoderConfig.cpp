@@ -58,8 +58,8 @@ void printHelp(VkVideoCodecOperationFlagBitsKHR codec)
                                         default(0), hq(1), lowlatency(2), ultralowlatency(3), lossless(4) \n\
     --rateControlMode               <integer> or <string>: select different rate control modes: \n\
                                         default(0), disabled(1), cbr(2), vbr(4)\n\
-    --averageBitrate                <integer> : Target bitrate for cbr/vbr RC modes\n\
-    --maxBitrate                    <integer> : Peak bitrate for cbr/vbr RC modes\n\
+    --totalBitrate                  <integer> : Target bitrate across all temporal layersfor cbr/vbr RC modes\n\
+    --maxTotalBitrate               <integer> : Peak bitrate across all temporal layers for cbr/vbr RC modes\n\
     --qpI                           <integer> : QP or QIndex (for AV1) used for I-frames when RC disabled\n\
     --qpP                           <integer> : QP or QIndex (for AV1) used for P-frames when RC disabled\n\
     --qpB                           <integer> : QP or QIndex (for AV1) used for B-frames when RC disabled\n\
@@ -405,13 +405,13 @@ int EncoderConfig::ParseArguments(int argc, char *argv[])
                 return -1;
             }
         }
-        else if (args[i] == "--averageBitrate") {
-            if (++i >= argc || sscanf(args[i].c_str(), "%u", &averageBitrate) != 1) {
+        else if (args[i] == "--totalBitrate") {
+            if (++i >= argc || sscanf(args[i].c_str(), "%u", &totalBitrate) != 1) {
                 fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
                 return -1;
             }
-        } else if (args[i] == "--maxBitrate") {
-                if (++i >= argc || sscanf(args[i].c_str(), "%u", &maxBitrate) != 1) {
+        } else if (args[i] == "--maxTotalBitrate") {
+                if (++i >= argc || sscanf(args[i].c_str(), "%u", &maxTotalBitrate) != 1) {
                     fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
                     return -1;
                 }
@@ -675,32 +675,47 @@ void EncoderConfig::InitVideoProfile()
 bool EncoderConfig::InitRateControl()
 {
     uint32_t levelBitRate = ((rateControlMode != VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) && hrdBitrate == 0)
-                                ? averageBitrate
+                                ? totalBitrate
                                 :            // constrained by avg bitrate
                                 hrdBitrate;  // constrained by max bitrate
 
     // If no bitrate is specified, use the level limit
-    if (averageBitrate == 0) {
-        averageBitrate = hrdBitrate ? hrdBitrate : levelBitRate;
+    if (totalBitrate == 0) {
+        totalBitrate = hrdBitrate ? hrdBitrate : levelBitRate;
     }
 
-    // If no HRD bitrate is specified, use 3x average for VBR (without going above level limit) or equal to average bitrate for
+    // If no HRD bitrate is specified, use 3x average for VBR (without going above level limit) or equal to total bitrate for
     // CBR
     if (hrdBitrate == 0) {
-        if ((rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR) && (averageBitrate < levelBitRate)) {
-            hrdBitrate = std::min(averageBitrate * 3, levelBitRate);
+        if ((rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR) && (totalBitrate < levelBitRate)) {
+            hrdBitrate = std::min(totalBitrate * 3, levelBitRate);
         } else {
-            hrdBitrate = averageBitrate;
+            hrdBitrate = totalBitrate;
         }
     }
 
     // avg bitrate must not be higher than max bitrate,
-    if (averageBitrate > hrdBitrate) {
-        averageBitrate = hrdBitrate;
+    if (totalBitrate > hrdBitrate) {
+        totalBitrate = hrdBitrate;
     }
 
     if (rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR) {
-        hrdBitrate = averageBitrate;
+        hrdBitrate = totalBitrate;
+    }
+    float layerRatio[3] = {
+        0.2,
+        0.4,
+        0.2,
+    };
+
+    for(int i = 0; i < 3; i++) {
+        layerConfigs[i].averageBitrate = totalBitrate * layerRatio[i];
+        layerConfigs[i].maxBitrate = maxTotalBitrate * layerRatio[i];
+        layerConfigs[i].frameRateNumerator = frameRateNumerator;
+        // 1/4 framerate in base layer
+        // 1/2 framerate in layer 1
+        // full framerate in layer 2
+        layerConfigs[i].frameRateDenominator = frameRateDenominator * pow(2, 2-i);
     }
 
     return true;

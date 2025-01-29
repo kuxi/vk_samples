@@ -1379,7 +1379,7 @@ VkResult VkVideoEncoder::HandleCtrlCmd(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
         }
 
         encodeFrameInfo->rateControlInfo.pLayers = encodeFrameInfo->rateControlLayersInfo;
-        encodeFrameInfo->rateControlInfo.layerCount = 1;
+        encodeFrameInfo->rateControlInfo.layerCount = 3;
         m_beginRateControlInfo = encodeFrameInfo->rateControlInfo;
 
         if (pNext != nullptr) {

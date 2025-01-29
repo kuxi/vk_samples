@@ -275,31 +275,31 @@ bool EncoderConfigAV1::InitRateControl()
     uint32_t levelBitrate = std::min(GetLevelBitrate(), 120000000u);
 
     // If no bitrate is specified, use the level limit
-    if (averageBitrate == 0) {
-        averageBitrate = hrdBitrate ? hrdBitrate : levelBitrate;
+    if (totalBitrate == 0) {
+        totalBitrate = hrdBitrate ? hrdBitrate : levelBitrate;
     }
 
     // If no HRD bitrate is specified, use 3x average for VBR (without going above level limit) or equal to average bitrate for
     // CBR
     if (hrdBitrate == 0) {
-        if ((rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR) && (averageBitrate < levelBitrate)) {
-            hrdBitrate = std::min(averageBitrate * 3, levelBitrate);
+        if ((rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR) && (totalBitrate < levelBitrate)) {
+            hrdBitrate = std::min(totalBitrate * 3, levelBitrate);
             // At least 500ms at peak rate if the application specifies the buffersize but not the HRD bitrate
             if (vbvBufferSize != 0) {
-                hrdBitrate = std::min(hrdBitrate, std::max(vbvBufferSize * 2, averageBitrate));
+                hrdBitrate = std::min(hrdBitrate, std::max(vbvBufferSize * 2, totalBitrate));
             }
         } else {
-            hrdBitrate = averageBitrate;
+            hrdBitrate = totalBitrate;
         }
     }
 
     // avg bitrate must not be higher than max bitrate,
-    if (averageBitrate > hrdBitrate) {
-        averageBitrate = hrdBitrate;
+    if (totalBitrate > hrdBitrate) {
+        totalBitrate = hrdBitrate;
     }
 
     if (rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR) {
-        hrdBitrate = averageBitrate;
+        hrdBitrate = totalBitrate;
     }
 
     // Use the level limit for the max VBV buffer size (1 second at MaxBitrate), and no more than 8 seconds at peak rate
@@ -336,10 +336,12 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
                                   VkVideoEncodeAV1RateControlInfoKHR* pRcInfoAV1,
                                   VkVideoEncodeAV1RateControlLayerInfoKHR* pRcLayerInfoAV1)
 {
-    pRcLayerInfo->averageBitrate = averageBitrate;
-    pRcLayerInfo->maxBitrate = hrdBitrate;
-    pRcLayerInfo->frameRateNumerator = frameRateNumerator;
-    pRcLayerInfo->frameRateDenominator = frameRateDenominator;
+    for (int i = 0; i < 3; i++) {
+        pRcLayerInfo[i].averageBitrate = layerConfigs[i].averageBitrate;
+        pRcLayerInfo[i].maxBitrate = layerConfigs[i].maxBitrate;
+        pRcLayerInfo[i].frameRateNumerator = layerConfigs[i].frameRateNumerator;
+        pRcLayerInfo[i].frameRateDenominator = layerConfigs[i].frameRateDenominator;
+    }
 
     if (rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DEFAULT_KHR) {
         pRcInfo->rateControlMode = VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR;
@@ -350,10 +352,12 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
     pRcInfo->initialVirtualBufferSizeInMs = (uint32_t)(vbvInitialDelay * 1000ull / hrdBitrate);
 
     if (pRcInfo->rateControlMode != VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
-        pRcLayerInfoAV1->useMinQIndex = VK_TRUE;
-        pRcLayerInfoAV1->minQIndex = minQIndex;
-        pRcLayerInfoAV1->useMaxQIndex = VK_TRUE;
-        pRcLayerInfoAV1->maxQIndex = maxQIndex;
+        for (int i = 0; i < 3; i++) {
+            pRcLayerInfoAV1[i].useMinQIndex = VK_TRUE;
+            pRcLayerInfoAV1[i].minQIndex = minQIndex;
+            pRcLayerInfoAV1[i].useMaxQIndex = VK_TRUE;
+            pRcLayerInfoAV1[i].maxQIndex = maxQIndex;
+        }
     }
 
     pRcInfoAV1->gopFrameCount = gopStructure.GetGopFrameCount();

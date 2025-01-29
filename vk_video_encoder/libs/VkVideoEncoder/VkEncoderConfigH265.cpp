@@ -333,11 +333,11 @@ bool EncoderConfigH265::IsSuitableLevel(uint32_t levelIdx, bool highTier)
         return false;
     }
 
-    if (maxBitrate != 0 && (maxBitrate > maxBitRate * cpbFactor)) {
+    if (maxTotalBitrate != 0 && (maxTotalBitrate > maxBitRate * cpbFactor)) {
         return false;
     }
 
-    if (averageBitrate != 0 && (averageBitrate > maxBitRate * cpbFactor)) {
+    if (totalBitrate != 0 && (totalBitrate > maxBitRate * cpbFactor)) {
         return false;
     }
 
@@ -423,26 +423,26 @@ bool EncoderConfigH265::InitRateControl()
     uint32_t cpbVclFactor = GetCpbVclFactor();
 
     // Safe default maximum bitrate
-    uint32_t levelBitRate = std::max(averageBitrate, hrdBitrate);
+    uint32_t levelBitRate = std::max(totalBitrate, hrdBitrate);
     levelBitRate = std::max(levelBitRate, std::min(levelLimits[level].maxBitRateMainTier * 800u, 120000000u));
 
     // If no bitrate is specified, use the level limit
-    if (averageBitrate == 0) {
-        averageBitrate = hrdBitrate ? hrdBitrate : levelBitRate;
+    if (totalBitrate == 0) {
+        totalBitrate = hrdBitrate ? hrdBitrate : levelBitRate;
     }
 
     // If no HRD bitrate is specified, use 3x average for VBR (without going above level limit) or equal to average bitrate for CBR
     if (hrdBitrate == 0) {
-        if ((rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR) && (averageBitrate < levelBitRate)) {
+        if ((rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR) && (totalBitrate < levelBitRate)) {
 
-            hrdBitrate = std::min(averageBitrate * 3, levelBitRate);
+            hrdBitrate = std::min(totalBitrate * 3, levelBitRate);
 
             // At least 500ms at peak rate if the application specifies the buffersize but not the HRD bitrate
             if (vbvBufferSize != 0) {
-                hrdBitrate = std::min(hrdBitrate, std::max(vbvBufferSize * 2, averageBitrate));
+                hrdBitrate = std::min(hrdBitrate, std::max(vbvBufferSize * 2, totalBitrate));
             }
         } else {
-            hrdBitrate = averageBitrate;
+            hrdBitrate = totalBitrate;
         }
     }
 
@@ -465,12 +465,12 @@ bool EncoderConfigH265::InitRateControl()
 
     // CBR (make peak bitrate = avg bitrate)
     if (rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR) {
-        hrdBitrate = averageBitrate;
+        hrdBitrate = totalBitrate;
     }
 
     // Average bitrate can't be higher than max bitrate
-    if (averageBitrate > hrdBitrate) {
-        averageBitrate = hrdBitrate;
+    if (totalBitrate > hrdBitrate) {
+        totalBitrate = hrdBitrate;
     }
 
     return true;
@@ -489,12 +489,12 @@ bool EncoderConfigH265::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR
 
     pRcLayerInfo->frameRateNumerator = frameRateNumerator;
     pRcLayerInfo->frameRateDenominator = frameRateDenominator;
-    pRcLayerInfo->averageBitrate = averageBitrate;
+    pRcLayerInfo->averageBitrate = totalBitrate;
     pRcLayerInfo->maxBitrate = hrdBitrate;
 
-    if ((averageBitrate > 0) || (hrdBitrate > 0)) {
-        rcInfo->virtualBufferSizeInMs = (uint32_t)(vbvBufferSize * 1000ull / (hrdBitrate ? hrdBitrate : averageBitrate));
-        rcInfo->initialVirtualBufferSizeInMs = (uint32_t)(vbvInitialDelay * 1000ull / (hrdBitrate ? hrdBitrate : averageBitrate));
+    if ((totalBitrate > 0) || (hrdBitrate > 0)) {
+        rcInfo->virtualBufferSizeInMs = (uint32_t)(vbvBufferSize * 1000ull / (hrdBitrate ? hrdBitrate : totalBitrate));
+        rcInfo->initialVirtualBufferSizeInMs = (uint32_t)(vbvInitialDelay * 1000ull / (hrdBitrate ? hrdBitrate : totalBitrate));
     }
 
     rcInfoH265->consecutiveBFrameCount = gopStructure.GetConsecutiveBFrameCount();
