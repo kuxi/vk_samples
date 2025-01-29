@@ -36,6 +36,30 @@ static StdVideoAV1ReferenceName refNameList[] =
     STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME
 };
 
+std::string refNameToString(StdVideoAV1ReferenceName refName) {
+    switch (refName) {
+        case STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME:
+            return "INTRA";
+        case STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME:
+            return "LAST";
+        case STD_VIDEO_AV1_REFERENCE_NAME_LAST2_FRAME:
+            return "LAST2";
+        case STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME:
+            return "LAST3";
+        case STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME:
+            return "GOLDEN";
+        case STD_VIDEO_AV1_REFERENCE_NAME_BWDREF_FRAME:
+            return "BWDREF";
+        case STD_VIDEO_AV1_REFERENCE_NAME_ALTREF2_FRAME:
+            return "ALTREF2";
+        case STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME:
+            return "ALTREF";
+        case STD_VIDEO_AV1_REFERENCE_NAME_INVALID:
+            return "INVALID";
+    }
+    return "no match";
+}
+
 #define MAKE_FOURCC( ch0, ch1, ch2, ch3 )                               \
                 ( (uint32_t)(uint8_t)(ch0) | ( (uint32_t)(uint8_t)(ch1) << 8 ) |    \
                 ( (uint32_t)(uint8_t)(ch2) << 16 ) | ( (uint32_t)(uint8_t)(ch3) << 24 ) )
@@ -196,6 +220,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     bool isKeyframe = (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_I) || (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_IDR);
     m_temporal_layers.BeforeEncode(isKeyframe);
     int temporal_layer = m_temporal_layers.GetTemporalLayer();
+    std::cout << "About to encode tl " << temporal_layer << std::endl;
     if (pFrameInfo->gopPosition.pictureType != VkVideoGopStructure::FRAME_TYPE_B) {
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_I) &&
             (encodeFrameInfo->gopPosition.inputOrder == encodeFrameInfo->gopPosition.encodeOrder)) {
@@ -207,6 +232,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
         }
     }
     StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, temporal_layer, flags, pFrameInfo->bIsReference);
+    std::cout << "Picked reference name: " << refNameToString(refName) << std::endl;
     InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, temporal_layer, refName);
     if (!pFrameInfo->bShowExistingFrame) {
         m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, temporal_layer, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
@@ -276,10 +302,12 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     // reference frames
     memset(pFrameInfo->pictureInfo.referenceNameSlotIndices, 0xff, sizeof(pFrameInfo->pictureInfo.referenceNameSlotIndices));
+    std::cout << "Setting references" << std::endl;
     bool primaryRefCdfOnly = true;
     for (uint32_t groupId = 0; groupId < 2; groupId++) {
         for (int32_t i = 0; i < m_dpbAV1->GetNumRefsInGroup(groupId); i++) {
             int32_t refNameMinus1 = m_dpbAV1->GetRefNameMinus1(groupId, i);
+            std::cout << "Reference " << i << ": " << refNameToString((StdVideoAV1ReferenceName)(refNameMinus1 + 1)) << std::endl;
 
             int32_t dpbIdx = m_dpbAV1->GetDpbIdx(groupId, i);
             assert(dpbIdx == m_dpbAV1->GetDpbIdx(refNameMinus1));
