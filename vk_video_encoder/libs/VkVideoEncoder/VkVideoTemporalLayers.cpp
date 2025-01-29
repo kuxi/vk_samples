@@ -54,7 +54,7 @@ bool VkVideoTemporalLayers::CanReference(int current_pattern_idx, int other_patt
         return false;
     }
     if (other_pattern_idx == 0) {
-        return current_pattern_idx == 1 || current_pattern_idx == 2;
+        return true;
     } else if (other_pattern_idx == 2) {
         return current_pattern_idx == 3;
     } else {
