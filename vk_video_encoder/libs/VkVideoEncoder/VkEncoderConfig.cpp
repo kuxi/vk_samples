@@ -703,9 +703,9 @@ bool EncoderConfig::InitRateControl()
         hrdBitrate = totalBitrate;
     }
     float layerRatio[3] = {
-        0.2,
         0.4,
         0.2,
+        0.4,
     };
 
     for(int i = 0; i < 3; i++) {
