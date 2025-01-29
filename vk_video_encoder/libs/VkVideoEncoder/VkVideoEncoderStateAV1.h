@@ -74,7 +74,9 @@ struct EncoderAV1State {
         , m_operatingPointsCount()
         , m_operatingPointsInfo()
         , m_rateControlInfoAV1{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_INFO_KHR }
-        , m_rateControlLayersInfoAV1{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR }}
+        , m_rateControlLayersInfoAV1{{ VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR },
+            { VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR },
+            { VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR }}
         , m_timing_info_present_flag()
         , m_decoder_model_info_present_flag()
     {
@@ -87,7 +89,7 @@ public:
     uint32_t                                m_operatingPointsCount;
     StdVideoEncodeAV1OperatingPointInfo     m_operatingPointsInfo[32];
     VkVideoEncodeAV1RateControlInfoKHR      m_rateControlInfoAV1;
-    VkVideoEncodeAV1RateControlLayerInfoKHR m_rateControlLayersInfoAV1[1];
+    VkVideoEncodeAV1RateControlLayerInfoKHR m_rateControlLayersInfoAV1[3];
 
     bool m_timing_info_present_flag;
     bool m_decoder_model_info_present_flag;
