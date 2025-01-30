@@ -328,6 +328,26 @@ bool EncoderConfigAV1::InitRateControl()
     maxQIndex.predictiveQIndex   = av1EncodeCapabilities.maxQIndex;
     maxQIndex.bipredictiveQIndex = av1EncodeCapabilities.maxQIndex;
 
+    float layerRatio[3] = {
+        0.4,
+        0.2,
+        0.4,
+    };
+
+    std::cout << "Initializing RC. totalBitrate: " << totalBitrate << ", hrdBitrate: " << hrdBitrate << ". Initializing layers" << std::endl;
+    for(int i = 0; i < 3; i++) {
+        layerConfigs[i].averageBitrate = totalBitrate * layerRatio[i];
+        layerConfigs[i].maxBitrate = maxTotalBitrate * layerRatio[i];
+        layerConfigs[i].frameRateNumerator = frameRateNumerator;
+        // 1/4 framerate in base layer
+        // 1/2 framerate in layer 1
+        // full framerate in layer 2
+        layerConfigs[i].frameRateDenominator = frameRateDenominator * pow(2, 2-i);
+        std::cout << "Configured layer " << i << " <avgBitrate: " << layerConfigs[i].averageBitrate
+            << ", maxBitrate: " << layerConfigs[i].maxBitrate << ", fps: " << layerConfigs[i].frameRateNumerator
+            << "/" << layerConfigs[i].frameRateDenominator << ">" << std::endl;
+    }
+
     return true;
 }
 
