@@ -300,13 +300,13 @@ int EncoderConfig::ParseArguments(int argc, char *argv[])
             }
         // GOP structure
         } else if (args[i] == "--gopFrameCount") {
-            uint32_t gopFrameCount = EncoderConfig::DEFAULT_GOP_FRAME_COUNT;
+            uint8_t gopFrameCount = EncoderConfig::DEFAULT_GOP_FRAME_COUNT;
             if (++i >= argc || sscanf(args[i].c_str(), "%hhu", &gopFrameCount) != 1) {
                 fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
                 return -1;
             }
             printf("Overriding gop frame count\n");
-            gopFrameCount = UINT32_MAX;
+            gopFrameCount = UINT8_MAX;
             gopStructure.SetGopFrameCount(gopFrameCount);
             if (verbose) {
                 printf("Selected gopFrameCount: %d\n", gopFrameCount);
@@ -317,6 +317,8 @@ int EncoderConfig::ParseArguments(int argc, char *argv[])
                 fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
                 return -1;
             }
+            printf("Overriding idr period\n");
+            idrPeriod = UINT32_MAX;
             gopStructure.SetIdrPeriod(idrPeriod);
             if (verbose) {
                 printf("Selected idrPeriod: %d\n", idrPeriod);
