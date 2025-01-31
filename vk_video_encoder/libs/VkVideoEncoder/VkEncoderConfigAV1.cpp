@@ -382,8 +382,9 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
         }
     }
 
-    pRcInfoAV1->gopFrameCount = gopStructure.GetGopFrameCount();
-    pRcInfoAV1->keyFramePeriod = gopStructure.GetIdrPeriod();
+    pRcInfoAV1->flags = VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REFERENCE_PATTERN_DYADIC_BIT_KHR ;
+    pRcInfoAV1->gopFrameCount = UINT32_MAX;
+    pRcInfoAV1->keyFramePeriod = UINT32_MAX;
     pRcInfoAV1->consecutiveBipredictiveFrameCount = gopStructure.GetConsecutiveBFrameCount();
     pRcInfoAV1->temporalLayerCount = gopStructure.GetTemporalLayerCount();
 
