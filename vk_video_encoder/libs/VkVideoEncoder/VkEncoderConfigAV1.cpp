@@ -264,6 +264,8 @@ bool EncoderConfigAV1::DetermineLevelTier()
         break;
     }
 
+    std::cout << "Picked AV tier " << ((int)tier) << " and level " << level << std::endl;
+
     return true;
 }
 
