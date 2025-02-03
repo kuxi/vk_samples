@@ -153,11 +153,6 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         return result;
     }
 
-    return VK_SUCCESS;
-}
-
-VkResult VkVideoEncoderAV1::InitRateControl(VkCommandBuffer cmdBuf, uint32_t qp)
-{
     aom::AV1RateControlRtcConfig rtc_cfg;
     rtc_cfg.width = m_encoderConfig->encodeWidth;
     rtc_cfg.height = m_encoderConfig->encodeHeight;
@@ -173,6 +168,12 @@ VkResult VkVideoEncoderAV1::InitRateControl(VkCommandBuffer cmdBuf, uint32_t qp)
         rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
     }
     m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
+
+    return VK_SUCCESS;
+}
+
+VkResult VkVideoEncoderAV1::InitRateControl(VkCommandBuffer cmdBuf, uint32_t qp)
+{
     return VK_SUCCESS;
 }
 
