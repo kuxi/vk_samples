@@ -17,6 +17,7 @@
 #include <chrono>
 #include "VkVideoEncoder/VkVideoEncoderAV1.h"
 #include "VkVideoCore/VulkanVideoCapabilities.h"
+#include "av1/ratectrl_rtc.h"
 
 
 #define FrameIsKey(frameType)   (frameType == STD_VIDEO_AV1_FRAME_TYPE_KEY)
@@ -157,6 +158,21 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
 
 VkResult VkVideoEncoderAV1::InitRateControl(VkCommandBuffer cmdBuf, uint32_t qp)
 {
+    aom::AV1RateControlRtcConfig rtc_cfg;
+    rtc_cfg.width = m_encoderConfig->encodeWidth;
+    rtc_cfg.height = m_encoderConfig->encodeHeight;
+    rtc_cfg.is_screen = false;
+    rtc_cfg.max_quantizer = m_encoderConfig->maxQIndex.intraQIndex;
+    rtc_cfg.min_quantizer = m_encoderConfig->minQIndex.intraQIndex;
+    rtc_cfg.target_bandwidth = m_encoderConfig->totalBitrate;
+    rtc_cfg.framerate = (double)m_encoderConfig->frameRateNumerator / m_encoderConfig->frameRateDenominator;
+    rtc_cfg.ss_number_layers = 1;
+    rtc_cfg.ts_number_layers = 3;
+    for (int i = 0; i < 3; i++) {
+        rtc_cfg.layer_target_bitrate[i]= m_encoderConfig->layerConfigs[i].averageBitrate;
+        rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
+    }
+    m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
     return VK_SUCCESS;
 }
 
@@ -217,8 +233,6 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     }
 
     uint32_t flags = 0;
-    bool isKeyframe = (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_I) || (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_IDR);
-    m_temporal_layers.BeforeEncode(isKeyframe);
     int temporal_layer = m_temporal_layers.GetTemporalLayer();
     std::cout << "About to encode tl " << temporal_layer << std::endl;
     if (pFrameInfo->gopPosition.pictureType != VkVideoGopStructure::FRAME_TYPE_B) {
@@ -532,6 +546,18 @@ VkResult VkVideoEncoderAV1::EncodeFrame(VkSharedBaseObj<VkVideoEncodeFrameInfo>&
         }
     }
 
+    // Update RC and temporal layering pattern
+    m_temporal_layers.BeforeEncode(pFrameInfo->bIsKeyFrame);
+    aom::AV1FrameParamsRTC params;
+    params.frame_type = pFrameInfo->bIsKeyFrame ? aom::kKeyFrame : aom::kInterFrame;
+    params.spatial_layer_id = 0;
+    params.temporal_layer_id = m_temporal_layers.GetTemporalLayer();
+    aom::FrameDropDecision decision = m_aom_rtc->ComputeQP(params);
+    if (decision == aom::kFrameDropDecisionDrop) {
+        std::cout << "Rate controller wants to drop frame - ignoring that" << std::endl;
+    }
+    
+
     pFrameInfo->encodeInfo.srcPictureResource.sType = VK_STRUCTURE_TYPE_VIDEO_PICTURE_RESOURCE_INFO_KHR;
     assert(pFrameInfo->encodeInfo.srcPictureResource.codedOffset.x == 0);
     assert(pFrameInfo->encodeInfo.srcPictureResource.codedOffset.y == 0);
@@ -572,6 +598,7 @@ VkResult VkVideoEncoderAV1::EncodeFrame(VkSharedBaseObj<VkVideoEncodeFrameInfo>&
                 assert(!"Invalid picture type");
                 break;
         }
+        pFrameInfo->pictureInfo.constantQIndex = m_aom_rtc->GetQP();
         if (pFrameInfo->stdPictureInfo.pQuantization != nullptr) {
             assert(pFrameInfo->stdPictureInfo.pQuantization == &pFrameInfo->stdQuantInfo);
             pFrameInfo->stdQuantInfo.base_q_idx = (uint8_t)pFrameInfo->pictureInfo.constantQIndex;
@@ -913,6 +940,9 @@ VkResult VkVideoEncoderAV1::AssembleBitstreamData(VkSharedBaseObj<VkVideoEncodeF
                   << ", Input Order: " << (uint32_t)encodeFrameInfo->gopPosition.inputOrder
                   << ", Encode  Order: " << (uint32_t)encodeFrameInfo->gopPosition.encodeOrder << std::endl << std::flush;
     }
+
+    // Update RC
+    m_aom_rtc->PostEncodeUpdate(encodeResult.bitstreamSize);
 
     m_batchFramesIndxSetToAssemble.insert(frameIdx);
 

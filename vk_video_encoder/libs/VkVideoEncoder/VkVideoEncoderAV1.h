@@ -22,6 +22,7 @@
 #include "VkVideoEncoder/VkVideoEncoderStateAV1.h"
 #include "VkVideoEncoder/VkEncoderConfigAV1.h"
 #include "VkVideoEncoder/VkVideoTemporalLayers.h"
+#include "av1/ratectrl_rtc.h"
 
 class VkVideoEncoderAV1 : public VkVideoEncoder
 {
@@ -208,6 +209,7 @@ private:
     std::set<uint32_t>                  m_batchFramesIndxSetToAssemble;
     std::vector<std::vector<uint8_t>>   m_bitstream;
     VkVideoTemporalLayers               m_temporal_layers;
+    std::unique_ptr<aom::AV1RateControlRTC> m_aom_rtc;
 
 };
 

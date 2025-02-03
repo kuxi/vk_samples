@@ -340,14 +340,13 @@ bool EncoderConfigAV1::InitRateControl()
     for(int i = 0; i < 3; i++) {
         layerConfigs[i].averageBitrate = totalBitrate * layerRatio[i];
         layerConfigs[i].maxBitrate = maxTotalBitrate * layerRatio[i];
-        layerConfigs[i].frameRateNumerator = frameRateNumerator;
         // 1/4 framerate in base layer
         // 1/2 framerate in layer 1
         // full framerate in layer 2
-        layerConfigs[i].frameRateDenominator = frameRateDenominator * pow(2, 2-i);
+        layerConfigs[i].frameRateDecimator = pow(2, 2-i);
         std::cout << "Configured layer " << i << " <avgBitrate: " << layerConfigs[i].averageBitrate
-            << ", maxBitrate: " << layerConfigs[i].maxBitrate << ", fps: " << layerConfigs[i].frameRateNumerator
-            << "/" << layerConfigs[i].frameRateDenominator << ">" << std::endl;
+            << ", maxBitrate: " << layerConfigs[i].maxBitrate << ", decimator: " << layerConfigs[i].frameRateDecimator
+            << ">" << std::endl;
     }
 
     return true;
@@ -361,8 +360,8 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
     for (int i = 0; i < 3; i++) {
         pRcLayerInfo[i].averageBitrate = layerConfigs[i].averageBitrate;
         pRcLayerInfo[i].maxBitrate = layerConfigs[i].maxBitrate;
-        pRcLayerInfo[i].frameRateNumerator = layerConfigs[i].frameRateNumerator;
-        pRcLayerInfo[i].frameRateDenominator = layerConfigs[i].frameRateDenominator;
+        pRcLayerInfo[i].frameRateNumerator = frameRateNumerator;
+        pRcLayerInfo[i].frameRateDenominator = frameRateDenominator * layerConfigs[i].frameRateDecimator;
     }
 
     if (rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DEFAULT_KHR) {

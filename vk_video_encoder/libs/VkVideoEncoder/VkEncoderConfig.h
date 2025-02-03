@@ -646,9 +646,7 @@ struct LayerConfig {
     public:
         uint32_t averageBitrate; // kbits/sec
         uint32_t maxBitrate;     // kbits/sec
-        uint32_t frameRateNumerator;
-        uint32_t frameRateDenominator;
-        
+        int frameRateDecimator;
 };
 
 struct EncoderConfig : public VkVideoRefCountBase {
