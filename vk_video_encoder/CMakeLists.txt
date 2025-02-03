@@ -417,6 +417,7 @@ if (WIN32)
         set (SPIRV_TOOLS_OPT_SEARCH_PATH "${EXTERNAL_SOURCE_ROOT}/glslang/${BUILDTGT_DIR}/External/spirv-tools/source/opt/${RELEASE_DECORATION}")
         set (SPIRV_TOOLS_OPT_DEBUG_SEARCH_PATH "${EXTERNAL_SOURCE_ROOT}/glslang/${BUILDTGT_DIR}/External/spirv-tools/source/opt/${DEBUG_DECORATION}")
     endif()
+
 else()
     # not WIN32
     if(CUSTOM_GLSLANG_BIN_ROOT)
@@ -456,6 +457,11 @@ find_path(SPIRV_TOOLS_INCLUDE_DIR spirv-tools/libspirv.h HINTS "${EXTERNAL_SOURC
 
 set(SHADERC_ROOT_PATH "${EXTERNAL_SOURCE_ROOT}/shaderc/${BUILDTGT_DIR}")
 set(SHADERC_SEARCH_PATH "${SHADERC_ROOT_PATH}/install/lib")
+
+set(AOM_LIB_PATH  "${EXTERNAL_SOURCE_ROOT}/aom" )
+set(AOM_LIB_BIN_PATH "${AOM_LIB_PATH}/build" )
+
+message(STATUS "AOM_LIB_PATH: ${AOM_LIB_PATH}" )
 
 
 find_library(VULKAN_LIB NAMES vulkan

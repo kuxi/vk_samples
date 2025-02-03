@@ -62,6 +62,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
     include_directories ("${PROJECT_SOURCE_DIR}/icd/common")
     link_libraries(${API_LOWERCASE} m)
+    #list(APPEND VULKAN_VIDEO_ENC_LIBRARIES PRIVATE -L${AOM_LIB_BIN_PATH} -laom_av1_rc)
 else()
     message(FATAL_ERROR "Unsupported Platform!")
 endif()
@@ -118,7 +119,12 @@ include_directories(
     ${DEMO_INCLUDE_DIRS}
     ${VULKAN_VIDEO_APIS_INCLUDE}
     ${VULKAN_VIDEO_APIS_INCLUDE}/vulkan
+    ${AOM_LIB_PATH}
     )
+
+link_directories(${AOM_LIB_BIN_PATH})
+link_libraries(aom_av1_rc)
+link_libraries(aom)
 
 ######################################################################################
 
