@@ -160,8 +160,8 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
     rtc_cfg.width = m_encoderConfig->encodeWidth;
     rtc_cfg.height = m_encoderConfig->encodeHeight;
     rtc_cfg.is_screen = false;
-    rtc_cfg.max_quantizer = min(m_encoderConfig->maxQIndex.intraQIndex, max_q);
-    rtc_cfg.min_quantizer = max(m_encoderConfig->minQIndex.intraQIndex, min_q);
+    rtc_cfg.max_quantizer = std::min(m_encoderConfig->maxQIndex.intraQIndex, max_q);
+    rtc_cfg.min_quantizer = std::max(m_encoderConfig->minQIndex.intraQIndex, min_q);
     rtc_cfg.target_bandwidth = m_encoderConfig->totalBitrate;
     rtc_cfg.undershoot_pct = 50;
     rtc_cfg.overshoot_pct = 50;
