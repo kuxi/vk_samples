@@ -153,8 +153,8 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         return result;
     }
 
-    int max_q = 52;
-    int min_q = 2;
+    uint32_t max_q = 52;
+    uint32_t min_q = 2;
 
     aom::AV1RateControlRtcConfig rtc_cfg;
     rtc_cfg.width = m_encoderConfig->encodeWidth;

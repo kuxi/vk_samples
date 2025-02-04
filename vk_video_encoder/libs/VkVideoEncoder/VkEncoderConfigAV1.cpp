@@ -322,6 +322,7 @@ bool EncoderConfigAV1::InitRateControl()
     } else if (vbvInitialDelay > vbvBufferSize) {
         vbvInitialDelay = vbvBufferSize;
     }
+    std::cout << "Min QP: " << av1EncodeCapabilities.minQIndex << ", Max QP: " << av1EncodeCapabilities.maxQIndex << std::endl;
 
     minQIndex.intraQIndex        = av1EncodeCapabilities.minQIndex;
     minQIndex.predictiveQIndex   = av1EncodeCapabilities.minQIndex;
