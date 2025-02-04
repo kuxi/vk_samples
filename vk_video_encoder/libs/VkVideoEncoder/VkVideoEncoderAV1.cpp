@@ -153,19 +153,28 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         return result;
     }
 
+    int max_q = 52;
+    int min_q = 2;
+
     aom::AV1RateControlRtcConfig rtc_cfg;
     rtc_cfg.width = m_encoderConfig->encodeWidth;
     rtc_cfg.height = m_encoderConfig->encodeHeight;
     rtc_cfg.is_screen = false;
-    rtc_cfg.max_quantizer = m_encoderConfig->maxQIndex.intraQIndex;
-    rtc_cfg.min_quantizer = m_encoderConfig->minQIndex.intraQIndex;
+    rtc_cfg.max_quantizer = min(m_encoderConfig->maxQIndex.intraQIndex, max_q);
+    rtc_cfg.min_quantizer = max(m_encoderConfig->minQIndex.intraQIndex, min_q);
     rtc_cfg.target_bandwidth = m_encoderConfig->totalBitrate;
+    rtc_cfg.undershoot_pct = 50;
+    rtc_cfg.overshoot_pct = 50;
+    rtc_cfg.max_inter_bitrate_pct = 150;
+    rtc_cfg.max_intra_bitrate_pct = 150;
     rtc_cfg.framerate = (double)m_encoderConfig->frameRateNumerator / m_encoderConfig->frameRateDenominator;
     rtc_cfg.ss_number_layers = 1;
     rtc_cfg.ts_number_layers = 3;
     for (int i = 0; i < 3; i++) {
         rtc_cfg.layer_target_bitrate[i]= m_encoderConfig->layerConfigs[i].averageBitrate;
         rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
+        rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
+        rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
     }
     m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
 
