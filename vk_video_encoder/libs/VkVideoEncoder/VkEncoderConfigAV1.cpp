@@ -322,7 +322,9 @@ bool EncoderConfigAV1::InitRateControl()
     } else if (vbvInitialDelay > vbvBufferSize) {
         vbvInitialDelay = vbvBufferSize;
     }
-    std::cout << "Min QP: " << av1EncodeCapabilities.minQIndex << ", Max QP: " << av1EncodeCapabilities.maxQIndex << std::endl;
+    if (verbose) {
+        std::cout << "Hardware QP limits: Min QP: " << av1EncodeCapabilities.minQIndex << ", Max QP: " << av1EncodeCapabilities.maxQIndex << std::endl;
+    }
 
     minQIndex.intraQIndex        = av1EncodeCapabilities.minQIndex;
     minQIndex.predictiveQIndex   = av1EncodeCapabilities.minQIndex;
@@ -337,7 +339,9 @@ bool EncoderConfigAV1::InitRateControl()
         0.4,
     };
 
-    std::cout << "Initializing RC. totalBitrate: " << totalBitrate << ", hrdBitrate: " << hrdBitrate << ". Initializing layers" << std::endl;
+    if (verbose) {
+        std::cout << "Initializing RC. totalBitrate: " << totalBitrate << ", hrdBitrate: " << hrdBitrate << ". Initializing layers" << std::endl;
+    }
     for(int i = 0; i < 3; i++) {
         layerConfigs[i].averageBitrate = totalBitrate * layerRatio[i];
         layerConfigs[i].maxBitrate = maxTotalBitrate * layerRatio[i];
@@ -345,9 +349,11 @@ bool EncoderConfigAV1::InitRateControl()
         // 1/2 framerate in layer 1
         // full framerate in layer 2
         layerConfigs[i].frameRateDecimator = pow(2, 2-i);
-        std::cout << "Configured layer " << i << " <avgBitrate: " << layerConfigs[i].averageBitrate
-            << ", maxBitrate: " << layerConfigs[i].maxBitrate << ", decimator: " << layerConfigs[i].frameRateDecimator
-            << ">" << std::endl;
+        if (verbose) {
+            std::cout << "Configured layer " << i << " <avgBitrate: " << layerConfigs[i].averageBitrate
+                << ", maxBitrate: " << layerConfigs[i].maxBitrate << ", decimator: " << layerConfigs[i].frameRateDecimator
+                << ">" << std::endl;
+        }
     }
 
     return true;
