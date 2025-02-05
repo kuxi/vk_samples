@@ -326,8 +326,8 @@ bool EncoderConfigAV1::InitRateControl()
         std::cout << "Hardware QP limits: Min QP: " << av1EncodeCapabilities.minQIndex << ", Max QP: " << av1EncodeCapabilities.maxQIndex << std::endl;
     }
 
-    int minq = std::max(av1EncodeCapabilities.minQIndex, minQp);
-    int maxq = std::min(av1EncodeCapabilities.maxQIndex, maxQp);
+    uint32_t minq = std::max(av1EncodeCapabilities.minQIndex, (uint32_t)minQp);
+    uint32_t maxq = std::min(av1EncodeCapabilities.maxQIndex, (uint32_t)maxQp);
 
     minQIndex.intraQIndex        = minq;
     minQIndex.predictiveQIndex   = minq;
