@@ -65,7 +65,9 @@ void printHelp(VkVideoCodecOperationFlagBitsKHR codec)
     --qpB                           <integer> : QP or QIndex (for AV1) used for B-frames when RC disabled\n\
     --deviceID                      <hexadec> : deviceID to be used, \n\
     --deviceUuid                    <string>  : deviceUuid to be used \n\
-    --testOutOfOrderRecording      Testing only: enable testing for out-of-order-recording\n");
+    --testOutOfOrderRecording      Testing only: enable testing for out-of-order-recording\n\
+    --undershoot_pct                <integer> : Configure undershoot percent used in aom AV1 rate controller\n\
+    --overshoot_pct                 <integer> : Configure overshoot percent used in aom AV1 rate controller\n");
 
     if ((codec == VK_VIDEO_CODEC_OPERATION_NONE_KHR) || (codec == VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR)) {
         fprintf(stderr, "\nH264 specific arguments: None\n");
@@ -478,6 +480,16 @@ int EncoderConfig::ParseArguments(int argc, char *argv[])
             // Testing only - don't use this feature for production!
             fprintf(stdout, "Warning: %s should only be used for testing!\n", args[i].c_str());
             enableOutOfOrderRecording = true;
+        } else if (args[i] == "--undershoot_pct") {
+            if (++i >= argc || sscanf(args[i].c_str(), "%u", &undershoot_pct) != 1) {
+                fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
+                return -1;
+            }
+        } else if (args[i] == "--overshoot_pct") {
+            if (++i >= argc || sscanf(args[i].c_str(), "%u", &overshoot_pct) != 1) {
+                fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
+                return -1;
+            }
         } else {
             argcount++;
             arglist.push_back((char*)args[i].c_str());

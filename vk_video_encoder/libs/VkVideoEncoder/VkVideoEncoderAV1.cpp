@@ -153,8 +153,15 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         return result;
     }
 
-    uint32_t max_q = 52;
     uint32_t min_q = 2;
+    uint32_t max_q = 35;
+
+    if (m_encoderConfig->minQp >= 0) {
+        min_q = (uint32_t)m_encoderConfig->minQp;
+    }
+    if (m_encoderConfig->maxQp >= 0) {
+        max_q = (uint32_t)m_encoderConfig->maxQp;
+    }
 
     aom::AV1RateControlRtcConfig rtc_cfg;
     rtc_cfg.width = m_encoderConfig->encodeWidth;
@@ -163,8 +170,8 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
     rtc_cfg.max_quantizer = std::min(m_encoderConfig->maxQIndex.intraQIndex, max_q);
     rtc_cfg.min_quantizer = std::max(m_encoderConfig->minQIndex.intraQIndex, min_q);
     rtc_cfg.target_bandwidth = m_encoderConfig->totalBitrate;
-    rtc_cfg.undershoot_pct = 50;
-    rtc_cfg.overshoot_pct = 50;
+    rtc_cfg.undershoot_pct = m_encoderConfig->undershoot_pct;
+    rtc_cfg.overshoot_pct = m_encoderConfig->overshoot_pct;
     rtc_cfg.max_inter_bitrate_pct = 150;
     rtc_cfg.max_intra_bitrate_pct = 150;
     rtc_cfg.framerate = (double)m_encoderConfig->frameRateNumerator / m_encoderConfig->frameRateDenominator;
@@ -176,6 +183,10 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
         rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
     }
+    std::cout << "Creating AV1 RC with config: (" << rtc_cfg.width << "x" << rtc_cfg.height
+              << ", minQ: " << rtc_cfg.min_quantizer << ", maxQ: " << rtc_cfg.max_quantizer
+              << ", undershoot_pct: " << rtc_cfg.undershoot_pct << ", overshoot_pct: " << rtc_cfg.overshoot_pct
+              << ", framerate: " << rtc_cfg.framerate << ", 3 temporal layers" << std::endl;
     m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
 
     return VK_SUCCESS;

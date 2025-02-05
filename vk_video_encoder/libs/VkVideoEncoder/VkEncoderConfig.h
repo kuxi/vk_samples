@@ -756,6 +756,9 @@ public:
     uint32_t enablePreprocessComputeFilter : 1;
     uint32_t enableOutOfOrderRecording : 1; // Testing only - don't use for production!
 
+    int undershoot_pct;
+    int overshoot_pct;
+
     EncoderConfig()
     : refCount(0)
     , appName()
@@ -841,6 +844,8 @@ public:
     , selectVideoWithComputeQueue(false)
     , enablePreprocessComputeFilter(false)
     , enableOutOfOrderRecording(false)
+    , undershoot_pct(50)
+    , overshoot_pct(50)
     { }
 
     virtual ~EncoderConfig() {}
