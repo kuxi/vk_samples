@@ -27,6 +27,7 @@ void printHelp(VkVideoCodecOperationFlagBitsKHR codec)
     -i, --input                     .yuv Input YUV File Name (YUV420p 8bpp only) \n\
     -o, --output                    .264/5,ivf Output H264/5/AV1 File Name \n\
     -c, --codec                     <string> select codec type: avc (h264) or hevc (h265) or av1\n\
+    -v                              Enables verbose logging\n\
     --dpbMode                       <string>  : select DPB mode: layered, separate\n\
     --inputWidth                    <integer> : Input Width \n\
     --inputHeight                   <integer> : Input Height \n\
@@ -167,6 +168,12 @@ int EncoderConfig::ParseArguments(int argc, char *argv[])
         } else if (args[i] == "-h" || args[i] == "--help") {
             printHelp(codec);
             return -1;
+        } else if (args[i] == "-v") {
+            printf("Enabling verbose output\n");
+            validateVerbose = true;
+            verbose = true;
+            verboseFrameStruct = true;
+            verboseMsg = true;
         } else if (args[i] == "-c" || args[i] == "--codec") {
             std::string codec_ = args[i + 1];
             if (codec_ == "avc" || codec_== "h264") {

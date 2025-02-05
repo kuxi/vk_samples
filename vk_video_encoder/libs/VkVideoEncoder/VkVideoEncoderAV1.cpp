@@ -183,10 +183,12 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
         rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
     }
-    std::cout << "Creating AV1 RC with config: (" << rtc_cfg.width << "x" << rtc_cfg.height
-              << ", minQ: " << rtc_cfg.min_quantizer << ", maxQ: " << rtc_cfg.max_quantizer
-              << ", undershoot_pct: " << rtc_cfg.undershoot_pct << ", overshoot_pct: " << rtc_cfg.overshoot_pct
-              << ", framerate: " << rtc_cfg.framerate << ", 3 temporal layers" << std::endl;
+    if (m_encoderConfig->verbose) {
+        std::cout << "Creating AV1 RC with config: (" << rtc_cfg.width << "x" << rtc_cfg.height
+                  << ", minQ: " << rtc_cfg.min_quantizer << ", maxQ: " << rtc_cfg.max_quantizer
+                  << ", undershoot_pct: " << rtc_cfg.undershoot_pct << ", overshoot_pct: " << rtc_cfg.overshoot_pct
+                  << ", framerate: " << rtc_cfg.framerate << ", 3 temporal layers" << std::endl;
+    }
     m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
 
     return VK_SUCCESS;
@@ -255,7 +257,9 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     uint32_t flags = 0;
     int temporal_layer = m_temporal_layers.GetTemporalLayer();
-    std::cout << "About to encode tl " << temporal_layer << std::endl;
+    if (m_encoderConfig->verbose) {
+        std::cout << "About to encode tl " << temporal_layer << std::endl;
+    }
     if (pFrameInfo->gopPosition.pictureType != VkVideoGopStructure::FRAME_TYPE_B) {
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_I) &&
             (encodeFrameInfo->gopPosition.inputOrder == encodeFrameInfo->gopPosition.encodeOrder)) {
@@ -267,7 +271,9 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
         }
     }
     StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, temporal_layer, flags, pFrameInfo->bIsReference);
-    std::cout << "Picked reference name: " << refNameToString(refName) << std::endl;
+    if (m_encoderConfig->verbose) {
+        std::cout << "Picked reference name: " << refNameToString(refName) << std::endl;
+    }
     InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, temporal_layer, refName);
     if (!pFrameInfo->bShowExistingFrame) {
         m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, temporal_layer, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
@@ -337,12 +343,16 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     // reference frames
     memset(pFrameInfo->pictureInfo.referenceNameSlotIndices, 0xff, sizeof(pFrameInfo->pictureInfo.referenceNameSlotIndices));
-    std::cout << "Setting references" << std::endl;
+    if (m_encoderConfig->verbose) {
+        std::cout << "Setting references" << std::endl;
+    }
     bool primaryRefCdfOnly = true;
     for (uint32_t groupId = 0; groupId < 2; groupId++) {
         for (int32_t i = 0; i < m_dpbAV1->GetNumRefsInGroup(groupId); i++) {
             int32_t refNameMinus1 = m_dpbAV1->GetRefNameMinus1(groupId, i);
-            std::cout << "Reference " << i << ": " << refNameToString((StdVideoAV1ReferenceName)(refNameMinus1 + 1)) << std::endl;
+            if (m_encoderConfig->verbose) {
+                std::cout << "Reference " << i << ": " << refNameToString((StdVideoAV1ReferenceName)(refNameMinus1 + 1)) << std::endl;
+            }
 
             int32_t dpbIdx = m_dpbAV1->GetDpbIdx(groupId, i);
             assert(dpbIdx == m_dpbAV1->GetDpbIdx(refNameMinus1));
@@ -620,6 +630,9 @@ VkResult VkVideoEncoderAV1::EncodeFrame(VkSharedBaseObj<VkVideoEncodeFrameInfo>&
                 break;
         }
         pFrameInfo->pictureInfo.constantQIndex = m_aom_rtc->GetQP();
+        if (m_encoderConfig->verbose) {
+            std::cout << "Picked QP " << pFrameInfo->pictureInfo.constantQIndex << " for frame." << std::endl;
+        }
         if (pFrameInfo->stdPictureInfo.pQuantization != nullptr) {
             assert(pFrameInfo->stdPictureInfo.pQuantization == &pFrameInfo->stdQuantInfo);
             pFrameInfo->stdQuantInfo.base_q_idx = (uint8_t)pFrameInfo->pictureInfo.constantQIndex;
