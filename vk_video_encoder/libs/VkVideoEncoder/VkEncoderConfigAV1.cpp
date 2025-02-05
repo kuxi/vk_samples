@@ -326,12 +326,15 @@ bool EncoderConfigAV1::InitRateControl()
         std::cout << "Hardware QP limits: Min QP: " << av1EncodeCapabilities.minQIndex << ", Max QP: " << av1EncodeCapabilities.maxQIndex << std::endl;
     }
 
-    minQIndex.intraQIndex        = av1EncodeCapabilities.minQIndex;
-    minQIndex.predictiveQIndex   = av1EncodeCapabilities.minQIndex;
-    minQIndex.bipredictiveQIndex = av1EncodeCapabilities.minQIndex;
-    maxQIndex.intraQIndex        = av1EncodeCapabilities.maxQIndex;
-    maxQIndex.predictiveQIndex   = av1EncodeCapabilities.maxQIndex;
-    maxQIndex.bipredictiveQIndex = av1EncodeCapabilities.maxQIndex;
+    int minq = std::max(av1EncodeCapabilities.minQIndex, minQp);
+    int maxq = std::min(av1EncodeCapabilities.maxQIndex, maxQp);
+
+    minQIndex.intraQIndex        = minq;
+    minQIndex.predictiveQIndex   = minq;
+    minQIndex.bipredictiveQIndex = minq;
+    maxQIndex.intraQIndex        = maxq;
+    maxQIndex.predictiveQIndex   = maxq;
+    maxQIndex.bipredictiveQIndex = maxq;
 
     float layerRatio[3] = {
         0.4,
