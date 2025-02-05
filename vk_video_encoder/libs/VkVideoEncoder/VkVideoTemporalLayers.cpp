@@ -23,9 +23,13 @@ int PATTERN[4] = {
 int PATTERN_LENGTH = 4;
 
 VkVideoTemporalLayers::VkVideoTemporalLayers()
-    : temporal_layer_count_(3)
+    : temporal_layer_count_(1)
     , pattern_index_(0)
 { }
+
+void VkVideoTemporalLayers::SetTemporalLayerCountToThree() {
+    temporal_layer_count_ = 3;
+}
 
 int VkVideoTemporalLayers::GetTemporalLayer() const {
     return PATTERN[pattern_index_];

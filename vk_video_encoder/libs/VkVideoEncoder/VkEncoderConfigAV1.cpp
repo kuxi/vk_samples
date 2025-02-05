@@ -342,13 +342,14 @@ bool EncoderConfigAV1::InitRateControl()
     if (verbose) {
         std::cout << "Initializing RC. totalBitrate: " << totalBitrate << ", hrdBitrate: " << hrdBitrate << ". Initializing layers" << std::endl;
     }
-    for(int i = 0; i < 3; i++) {
+    int highest_layer = gopStructure.GetTemporalLayerCount() - 1;
+    for(int i = 0; i < gopStructure.GetTemporalLayerCount(); i++) {
         layerConfigs[i].averageBitrate = totalBitrate * layerRatio[i];
         layerConfigs[i].maxBitrate = maxTotalBitrate * layerRatio[i];
         // 1/4 framerate in base layer
         // 1/2 framerate in layer 1
         // full framerate in layer 2
-        layerConfigs[i].frameRateDecimator = pow(2, 2-i);
+        layerConfigs[i].frameRateDecimator = pow(2, highest_layer-i);
         if (verbose) {
             std::cout << "Configured layer " << i << " <avgBitrate: " << layerConfigs[i].averageBitrate
                 << ", maxBitrate: " << layerConfigs[i].maxBitrate << ", decimator: " << layerConfigs[i].frameRateDecimator
@@ -364,7 +365,7 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
                                   VkVideoEncodeAV1RateControlInfoKHR* pRcInfoAV1,
                                   VkVideoEncodeAV1RateControlLayerInfoKHR* pRcLayerInfoAV1)
 {
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < gopStructure.GetTemporalLayerCount(); i++) {
         pRcLayerInfo[i].averageBitrate = layerConfigs[i].averageBitrate;
         pRcLayerInfo[i].maxBitrate = layerConfigs[i].maxBitrate;
         pRcLayerInfo[i].frameRateNumerator = frameRateNumerator;
@@ -380,7 +381,7 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
     pRcInfo->initialVirtualBufferSizeInMs = (uint32_t)(vbvInitialDelay * 1000ull / hrdBitrate);
 
     if (pRcInfo->rateControlMode != VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < gopStructure.GetTemporalLayerCount(); i++) {
             pRcLayerInfoAV1[i].useMinQIndex = VK_TRUE;
             pRcLayerInfoAV1[i].minQIndex = minQIndex;
             pRcLayerInfoAV1[i].useMaxQIndex = VK_TRUE;

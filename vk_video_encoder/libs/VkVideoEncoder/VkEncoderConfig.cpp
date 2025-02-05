@@ -348,6 +348,10 @@ int EncoderConfig::ParseArguments(int argc, char *argv[])
                 fprintf(stderr, "invalid parameter for %s\n", args[i - 1].c_str());
                 return -1;
             }
+            if (temporalLayerCount != 1 && temporalLayerCount != 3) {
+                fprintf(stderr, "Invalid temporal layer count\n");
+                return -1;
+            }
             gopStructure.SetTemporalLayerCount(temporalLayerCount);
             if (verbose) {
                 printf("Selected temporalLayerCount: %d\n", temporalLayerCount);

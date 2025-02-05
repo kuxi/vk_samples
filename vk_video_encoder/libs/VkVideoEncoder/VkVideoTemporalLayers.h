@@ -27,6 +27,8 @@ class VkVideoTemporalLayers {
 public:
     VkVideoTemporalLayers();
 
+    void SetTemporalLayerCountToThree();
+
     int GetTemporalLayer() const;
     int GetTemporalPatternIdx() const;
     void BeforeEncode(bool is_keyframe);

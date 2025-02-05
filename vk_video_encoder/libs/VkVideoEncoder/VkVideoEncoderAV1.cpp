@@ -101,7 +101,9 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
 {
     m_encoderConfig = encoderConfig->GetEncoderConfigAV1();
     assert(m_encoderConfig);
-
+    if (encoderConfig->gopStructure.GetTemporalLayerCount() == 3) {
+        m_temporal_layers.SetTemporalLayerCountToThree();
+    }
     if (m_encoderConfig->codec != VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR) {
         return VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR;
     }
@@ -176,18 +178,21 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
     rtc_cfg.max_intra_bitrate_pct = 150;
     rtc_cfg.framerate = (double)m_encoderConfig->frameRateNumerator / m_encoderConfig->frameRateDenominator;
     rtc_cfg.ss_number_layers = 1;
-    rtc_cfg.ts_number_layers = 3;
-    for (int i = 0; i < 3; i++) {
-        rtc_cfg.layer_target_bitrate[i]= m_encoderConfig->layerConfigs[i].averageBitrate;
-        rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
-        rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
-        rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
+    rtc_cfg.ts_number_layers = m_encoderConfig->gopStructure.GetTemporalLayerCount();
+    if (m_encoderConfig->gopStructure.GetTemporalLayerCount() == 3) {
+        for (int i = 0; i < 3; i++) {
+            rtc_cfg.layer_target_bitrate[i]= m_encoderConfig->layerConfigs[i].averageBitrate;
+            rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
+            rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
+            rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
+        }
     }
     if (m_encoderConfig->verbose) {
         std::cout << "Creating AV1 RC with config: (" << rtc_cfg.width << "x" << rtc_cfg.height
                   << ", minQ: " << rtc_cfg.min_quantizer << ", maxQ: " << rtc_cfg.max_quantizer
                   << ", undershoot_pct: " << rtc_cfg.undershoot_pct << ", overshoot_pct: " << rtc_cfg.overshoot_pct
-                  << ", framerate: " << rtc_cfg.framerate << ", 3 temporal layers" << std::endl;
+                  << ", framerate: " << rtc_cfg.framerate << ", "
+                  << m_encoderConfig->gopStructure.GetTemporalLayerCount() << " temporal layers" << std::endl;
     }
     m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
 
