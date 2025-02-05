@@ -154,47 +154,49 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
         fprintf(stderr, "\nEncodeFrame Error: Failed to get create video session object.\n");
         return result;
     }
+    
+    if (m_rateControlInfo.rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
+        uint32_t min_q = 2;
+        uint32_t max_q = 35;
 
-    uint32_t min_q = 2;
-    uint32_t max_q = 35;
-
-    if (m_encoderConfig->minQp >= 0) {
-        min_q = (uint32_t)m_encoderConfig->minQp;
-    }
-    if (m_encoderConfig->maxQp >= 0) {
-        max_q = (uint32_t)m_encoderConfig->maxQp;
-    }
-
-    aom::AV1RateControlRtcConfig rtc_cfg;
-    rtc_cfg.width = m_encoderConfig->encodeWidth;
-    rtc_cfg.height = m_encoderConfig->encodeHeight;
-    rtc_cfg.is_screen = false;
-    rtc_cfg.max_quantizer = std::min(m_encoderConfig->maxQIndex.intraQIndex, max_q);
-    rtc_cfg.min_quantizer = std::max(m_encoderConfig->minQIndex.intraQIndex, min_q);
-    rtc_cfg.target_bandwidth = m_encoderConfig->totalBitrate;
-    rtc_cfg.undershoot_pct = m_encoderConfig->undershoot_pct;
-    rtc_cfg.overshoot_pct = m_encoderConfig->overshoot_pct;
-    rtc_cfg.max_inter_bitrate_pct = 150;
-    rtc_cfg.max_intra_bitrate_pct = 150;
-    rtc_cfg.framerate = (double)m_encoderConfig->frameRateNumerator / m_encoderConfig->frameRateDenominator;
-    rtc_cfg.ss_number_layers = 1;
-    rtc_cfg.ts_number_layers = m_encoderConfig->gopStructure.GetTemporalLayerCount();
-    if (m_encoderConfig->gopStructure.GetTemporalLayerCount() == 3) {
-        for (int i = 0; i < 3; i++) {
-            rtc_cfg.layer_target_bitrate[i]= m_encoderConfig->layerConfigs[i].averageBitrate;
-            rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
-            rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
-            rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
+        if (m_encoderConfig->minQp >= 0) {
+            min_q = (uint32_t)m_encoderConfig->minQp;
         }
+        if (m_encoderConfig->maxQp >= 0) {
+            max_q = (uint32_t)m_encoderConfig->maxQp;
+        }
+
+        aom::AV1RateControlRtcConfig rtc_cfg;
+        rtc_cfg.width = m_encoderConfig->encodeWidth;
+        rtc_cfg.height = m_encoderConfig->encodeHeight;
+        rtc_cfg.is_screen = false;
+        rtc_cfg.max_quantizer = std::min(m_encoderConfig->maxQIndex.intraQIndex, max_q);
+        rtc_cfg.min_quantizer = std::max(m_encoderConfig->minQIndex.intraQIndex, min_q);
+        rtc_cfg.target_bandwidth = m_encoderConfig->totalBitrate;
+        rtc_cfg.undershoot_pct = m_encoderConfig->undershoot_pct;
+        rtc_cfg.overshoot_pct = m_encoderConfig->overshoot_pct;
+        rtc_cfg.max_inter_bitrate_pct = 150;
+        rtc_cfg.max_intra_bitrate_pct = 150;
+        rtc_cfg.framerate = (double)m_encoderConfig->frameRateNumerator / m_encoderConfig->frameRateDenominator;
+        rtc_cfg.ss_number_layers = 1;
+        rtc_cfg.ts_number_layers = m_encoderConfig->gopStructure.GetTemporalLayerCount();
+        if (m_encoderConfig->gopStructure.GetTemporalLayerCount() == 3) {
+            for (int i = 0; i < 3; i++) {
+                rtc_cfg.layer_target_bitrate[i]= m_encoderConfig->layerConfigs[i].averageBitrate;
+                rtc_cfg.ts_rate_decimator[i] = m_encoderConfig->layerConfigs[i].frameRateDecimator;
+                rtc_cfg.max_quantizers[i] = rtc_cfg.max_quantizer;
+                rtc_cfg.min_quantizers[i] = rtc_cfg.min_quantizer;
+            }
+        }
+        if (m_encoderConfig->verbose) {
+            std::cout << "Creating AV1 RC with config: (" << rtc_cfg.width << "x" << rtc_cfg.height
+                      << ", minQ: " << rtc_cfg.min_quantizer << ", maxQ: " << rtc_cfg.max_quantizer
+                      << ", undershoot_pct: " << rtc_cfg.undershoot_pct << ", overshoot_pct: " << rtc_cfg.overshoot_pct
+                      << ", framerate: " << rtc_cfg.framerate << ", "
+                      << m_encoderConfig->gopStructure.GetTemporalLayerCount() << " temporal layers" << std::endl;
+        }
+        m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
     }
-    if (m_encoderConfig->verbose) {
-        std::cout << "Creating AV1 RC with config: (" << rtc_cfg.width << "x" << rtc_cfg.height
-                  << ", minQ: " << rtc_cfg.min_quantizer << ", maxQ: " << rtc_cfg.max_quantizer
-                  << ", undershoot_pct: " << rtc_cfg.undershoot_pct << ", overshoot_pct: " << rtc_cfg.overshoot_pct
-                  << ", framerate: " << rtc_cfg.framerate << ", "
-                  << m_encoderConfig->gopStructure.GetTemporalLayerCount() << " temporal layers" << std::endl;
-    }
-    m_aom_rtc = aom::AV1RateControlRTC::Create(rtc_cfg);
 
     return VK_SUCCESS;
 }
@@ -588,9 +590,11 @@ VkResult VkVideoEncoderAV1::EncodeFrame(VkSharedBaseObj<VkVideoEncodeFrameInfo>&
     params.frame_type = pFrameInfo->bIsKeyFrame ? aom::kKeyFrame : aom::kInterFrame;
     params.spatial_layer_id = 0;
     params.temporal_layer_id = m_temporal_layers.GetTemporalLayer();
-    aom::FrameDropDecision decision = m_aom_rtc->ComputeQP(params);
-    if (decision == aom::kFrameDropDecisionDrop) {
-        std::cout << "Rate controller wants to drop frame - ignoring that" << std::endl;
+    if (m_rateControlInfo.rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
+        aom::FrameDropDecision decision = m_aom_rtc->ComputeQP(params);
+        if (decision == aom::kFrameDropDecisionDrop) {
+            std::cout << "Rate controller wants to drop frame - ignoring that" << std::endl;
+        }
     }
     
 
@@ -980,8 +984,10 @@ VkResult VkVideoEncoderAV1::AssembleBitstreamData(VkSharedBaseObj<VkVideoEncodeF
                   << ", Encode  Order: " << (uint32_t)encodeFrameInfo->gopPosition.encodeOrder << std::endl << std::flush;
     }
 
-    // Update RC
-    m_aom_rtc->PostEncodeUpdate(encodeResult.bitstreamSize);
+    if (m_rateControlInfo.rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
+        // Update RC
+        m_aom_rtc->PostEncodeUpdate(encodeResult.bitstreamSize);
+    }
 
     m_batchFramesIndxSetToAssemble.insert(frameIdx);
 
