@@ -284,10 +284,9 @@ VkResult VkVideoEncoderAV1::StartOfVideoCodingEncodeOrder(VkSharedBaseObj<VkVide
 
 void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
     std::cout << "Frame: <" << std::endl
-        << "  encodeInfo.referenceSlotCount: " << frame->encodeInfo.referenceSlotCount
-        << "  frameInputOrderNum: " << frame->frameInputOrderNum
-        << "  frameEncodeEncodeOrderNum: " << frame->frameEncodeEncodeOrderNum
-        << "  constQp.qpIntra: " << frame->constQp.qpIntra
+        << "  frameInputOrderNum: " << frame->frameInputOrderNum << std::endl
+        << "  frameEncodeEncodeOrderNum: " << frame->frameEncodeEncodeOrderNum << std::endl
+        << "  constQp.qpIntra: " << frame->constQp.qpIntra << std::endl
         << "  pictureInfo.referenceNameSlotIndices: [" << std::endl;
     for (int ref = STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME;
             ref <= STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME;
@@ -296,12 +295,11 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
             << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": "
             << frame->pictureInfo.referenceNameSlotIndices[ref] << std::endl;
     }
-    std::cout << "  pictureInfo.predictionMode: " << predictionModeToString(frame->pictureInfo.predictionMode) << std::endl
+    std::cout << "  ]" << std::endl
+        << "  pictureInfo.predictionMode: " << predictionModeToString(frame->pictureInfo.predictionMode) << std::endl
         << "  pictureInfo.primaryReferenceCdfOnly: " << frame->pictureInfo.primaryReferenceCdfOnly << std::endl
         << "  pictureInfo.rateControlGroup: " << rcGrpToString(frame->pictureInfo.rateControlGroup) << std::endl
         << "  pictureInfo.constantQIndex: " << frame->pictureInfo.constantQIndex << std::endl
-        /*
-         */
         << "  stdPictureInfo.refresh_frame_flags: "
           << std::hex << frame->stdPictureInfo.refresh_frame_flags << std::dec << std::endl
         << "  stdPictureInfo.primary_ref_frame: " << refNameToString((StdVideoAV1ReferenceName)frame->stdPictureInfo.primary_ref_frame) << std::endl
@@ -316,7 +314,14 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  bShownKeyFrameOrSwitch: " << frame->bShownKeyFrameOrSwitch << std::endl
         << "  bOverlayFrame: " << frame->bOverlayFrame << std::endl
         << "  bIsReference: " << frame->bIsReference << std::endl
-        ;
+        << "  numDpbImageResource: " << frame->numDpbImageResources << std::endl
+        << "  encodeInfo.referenceSlotCount: " << frame->encodeInfo.referenceSlotCount << std::endl
+        << "  referenceSlotsInfo: [" << std::endl;
+    for (uint32_t i = 0; i < frame->numDpbImageResources; i++) {
+        std::cout << "    slotIndex: " << frame->referenceSlotsInfo[i].slotIndex << std::endl;
+    }
+    std::cout << "  ]" << std::endl
+        << ">" << std::endl;
 
 }
 
