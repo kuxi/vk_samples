@@ -198,6 +198,7 @@ private:
     void InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequenceHdr, VkVideoEncodeFrameInfoAV1* pFrameInfo,
             int temporal_layer,
                                StdVideoAV1ReferenceName& refName);
+    void DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame);
 
     VkSharedBaseObj<EncoderConfigAV1>   m_encoderConfig;
     EncoderAV1State                     m_stateAV1;

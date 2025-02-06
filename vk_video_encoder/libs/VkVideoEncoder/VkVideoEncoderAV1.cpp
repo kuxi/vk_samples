@@ -61,6 +61,35 @@ std::string refNameToString(StdVideoAV1ReferenceName refName) {
     return "no match";
 }
 
+std::string predictionModeToString(VkVideoEncodeAV1PredictionModeKHR mode) {
+    switch (mode) {
+        case VK_VIDEO_ENCODE_AV1_PREDICTION_MODE_INTRA_ONLY_KHR:
+            return "INTRA_ONLY";
+        case VK_VIDEO_ENCODE_AV1_PREDICTION_MODE_SINGLE_REFERENCE_KHR:
+            return "SINGLE_REFERENCE";
+        case VK_VIDEO_ENCODE_AV1_PREDICTION_MODE_UNIDIRECTIONAL_COMPOUND_KHR:
+            return "UNIDIRECTIONAL_COMPOUND";
+        case VK_VIDEO_ENCODE_AV1_PREDICTION_MODE_BIDIRECTIONAL_COMPOUND_KHR:
+            return "BIDIRECTIONAL_COMPOUND";
+        default:
+            return "no match";
+    }
+}
+
+std::string rcGrpToString(VkVideoEncodeAV1RateControlGroupKHR group) {
+    switch (group) {
+        case VK_VIDEO_ENCODE_AV1_RATE_CONTROL_GROUP_INTRA_KHR:
+            return "INTRA";
+        case VK_VIDEO_ENCODE_AV1_RATE_CONTROL_GROUP_PREDICTIVE_KHR:
+            return "PREDICTIVE";
+        case VK_VIDEO_ENCODE_AV1_RATE_CONTROL_GROUP_BIPREDICTIVE_KHR:
+            return "BIPREDICTIVE";
+        default:
+            return "no match";
+    }
+}
+
+
 #define MAKE_FOURCC( ch0, ch1, ch2, ch3 )                               \
                 ( (uint32_t)(uint8_t)(ch0) | ( (uint32_t)(uint8_t)(ch1) << 8 ) |    \
                 ( (uint32_t)(uint8_t)(ch2) << 16 ) | ( (uint32_t)(uint8_t)(ch3) << 24 ) )
@@ -251,6 +280,44 @@ VkResult VkVideoEncoderAV1::StartOfVideoCodingEncodeOrder(VkSharedBaseObj<VkVide
     }
 
     return VK_SUCCESS;
+}
+
+void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
+    std::cout << "Frame: <" << std::endl
+        << "  encodeInfo.referenceSlotCount: " << frame->encodeInfo.referenceSlotCount
+        << "  frameInputOrderNum: " << frame->frameInputOrderNum
+        << "  frameEncodeEncodeOrderNum: " << frame->frameEncodeEncodeOrderNum
+        << "  constQp.qpIntra: " << frame->constQp.qpIntra
+        << "  pictureInfo.referenceNameSlotIndices: [" << std::endl;
+    for (int ref = STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME;
+            ref < STD_VIDEO_AV1_REFERENCE_NAME_MAX_ENUM;
+            ref++) {
+        std::cout
+            << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": "
+            << frame->pictureInfo.referenceNameSlotIndices[ref] << std::endl;
+    }
+    std::cout << "  pictureInfo.predictionMode: " << predictionModeToString(frame->pictureInfo.predictionMode) << std::endl
+        << "  pictureInfo.primaryReferenceCdfOnly: " << frame->pictureInfo.primaryReferenceCdfOnly << std::endl
+        << "  pictureInfo.rateControlGroup: " << rcGrpToString(frame->pictureInfo.rateControlGroup) << std::endl
+        << "  pictureInfo.constantQIndex: " << frame->pictureInfo.constantQIndex << std::endl
+        /*
+         */
+        << "  stdPictureInfo.refresh_frame_flags: "
+          << std::hex << frame->stdPictureInfo.refresh_frame_flags << std::dec << std::endl
+        << "  stdPictureInfo.primary_ref_frame: " << refNameToString((StdVideoAV1ReferenceName)frame->stdPictureInfo.primary_ref_frame) << std::endl
+        << "  stdPictureInfo.flags.error_resilient_mode: " << frame->stdPictureInfo.flags.error_resilient_mode << std::endl
+        << "  stdPictureInfo.flags.show_frame: " << frame->stdPictureInfo.flags.show_frame << std::endl
+        << "  stdExtensionHeader: <sid: "
+          << (int)frame->stdExtensionHeader.spatial_id
+          << ", tid: " << (int)frame->stdExtensionHeader.temporal_id << ">" << std::endl
+        << "  bShowExistingFrame: " << frame->bShowExistingFrame << std::endl
+        << "  frameToShowBufId: " << frame->frameToShowBufId << std::endl
+        << "  bIsKeyFrame: " << frame->bIsKeyFrame << std::endl
+        << "  bShownKeyFrameOrSwitch: " << frame->bShownKeyFrameOrSwitch << std::endl
+        << "  bOverlayFrame: " << frame->bOverlayFrame << std::endl
+        << "  bIsReference: " << frame->bIsReference << std::endl
+        ;
+
 }
 
 VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& encodeFrameInfo,
@@ -514,6 +581,10 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     if (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) {
         assert(m_numBFramesToEncode != 0);
         m_numBFramesToEncode--;
+    }
+
+    if (m_encoderConfig->verboseFrameStruct) {
+        DumpFrameInfo(pFrameInfo);
     }
 
     return VK_SUCCESS;
