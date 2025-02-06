@@ -291,8 +291,9 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
     for (int ref = STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME;
             ref <= STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME;
             ref++) {
+        // These are indexed starting at LAST (i.e. refname minus1)
         std::cout
-            << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": "
+            << "    " << refNameToString((StdVideoAV1ReferenceName)(ref+1)) << ": "
             << frame->pictureInfo.referenceNameSlotIndices[ref] << std::endl;
     }
     std::cout << "  ]" << std::endl
