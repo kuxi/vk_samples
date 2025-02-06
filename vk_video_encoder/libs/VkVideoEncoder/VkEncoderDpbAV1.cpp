@@ -160,7 +160,12 @@ int32_t VkEncDpbAV1::DpbSequenceStart(const VkVideoEncodeAV1CapabilitiesKHR& cap
     }
 
     for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
-        m_refBufIdMap[i] = i;
+        // Only use LAST_x ref names
+        if (i <= STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME) {
+            m_refBufIdMap[i] = 1;
+        } else {
+            m_refBufIdMap[i] = 1;
+        }
     }
 
     m_lastLastRefNameInUse = (numBFrames == 0) ? STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME :
@@ -569,6 +574,20 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
     // For shown key frame and S-frames virtual buffer mapping does not change
     if (bShownKeyFrameOrSwitch || (frameUpdateType == NO_UPDATE) ) {
         return;
+    }
+    // Hardcode 3 layer things
+    if (frameUpdateType == LF_UPDATE) {
+        m_refBufIdMap[0] = 1;
+        m_refBufIdMap[1] = 1;
+        m_refBufIdMap[2] = 1;
+    } else if (frameUpdateType == LF2_UPDATE) {
+        m_refBufIdMap[0] = 1;
+        m_refBufIdMap[1] = 1;
+        m_refBufIdMap[2] = 1;
+    } else if (frameUpdateType == LF3_UPDATE) {
+        m_refBufIdMap[0] = 1;
+        m_refBufIdMap[1] = 1;
+        m_refBufIdMap[2] = 1;
     }
     // TODO: do I really need this?
     return;
