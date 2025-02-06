@@ -187,6 +187,7 @@ public:
     StdVideoAV1ReferenceName GetRefName(int32_t dpbIdx) { assert(dpbIdx != INVALID_IDX); return m_DPB[dpbIdx].refName; }
     int32_t GetFrameId(int32_t dpbIdx) { assert(dpbIdx != INVALID_IDX); return m_DPB[dpbIdx].frameId; }
     int32_t GetPicOrderCntVal(int32_t dpbIdx) { assert(dpbIdx != INVALID_IDX); return m_DPB[dpbIdx].picOrderCntVal; }
+    int GetTemporalLayer(int32_t dpbIdx) { assert(dpbIdx != INVALID_IDX); return m_DPB[dpbIdx].temporal_layer; }
     int32_t GetNumRefsInGroup(int32_t groupId) {
         assert(groupId < 2);
         return (groupId == 0) ? m_numRefFramesInGroup1 : m_numRefFramesInGroup2;

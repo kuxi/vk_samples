@@ -281,6 +281,21 @@ VkResult VkVideoEncoderAV1::StartOfVideoCodingEncodeOrder(VkSharedBaseObj<VkVide
 
     return VK_SUCCESS;
 }
+void VkVideoEncoderAV1::DumpDpbInfo(VkVideoEncodeFrameInfoAV1* frame) {
+    std::cout << "DPB: [" << std::endl;
+    for (uint32_t i = 0; i < frame->numDpbImageResources; i++) {
+        int dpbidx = frame->referenceSlotsInfo[i].slotIndex;
+        if (dpbidx < 0) {
+            continue;
+        }
+        std::cout << "  " << dpbidx << ": <" << std::endl
+            << "    frameId: " << m_dpbAV1->GetFrameId(dpbidx) << std::endl
+            << "    temporal_layer: " << m_dpbAV1->GetTemporalLayer(dpbidx) << std::endl
+            << "    refName: " << refNameToString(m_dpbAV1->GetRefName(dpbidx)) << std::endl
+            << "    picOrderCntVal: " << m_dpbAV1->GetPicOrderCntVal(dpbidx) << std::endl;
+    }
+        ;
+}
 
 void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
     std::cout << "Frame: <" << std::endl
@@ -591,6 +606,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     if (m_encoderConfig->verboseFrameStruct) {
         DumpFrameInfo(pFrameInfo);
+        DumpDpbInfo(pFrameInfo);
     }
 
     return VK_SUCCESS;

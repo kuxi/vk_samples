@@ -199,6 +199,7 @@ private:
             int temporal_layer,
                                StdVideoAV1ReferenceName& refName);
     void DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame);
+    void DumpDpbInfo(VkVideoEncodeFrameInfoAV1* frame);
 
     VkSharedBaseObj<EncoderConfigAV1>   m_encoderConfig;
     EncoderAV1State                     m_stateAV1;
