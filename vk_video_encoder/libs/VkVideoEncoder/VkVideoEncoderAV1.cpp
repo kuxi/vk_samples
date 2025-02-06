@@ -288,13 +288,13 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  frameEncodeEncodeOrderNum: " << frame->frameEncodeEncodeOrderNum << std::endl
         << "  constQp.qpIntra: " << frame->constQp.qpIntra << std::endl
         << "  pictureInfo.referenceNameSlotIndices: [" << std::endl;
-    for (int ref = STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME;
+    for (int ref = STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME;
             ref <= STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME;
             ref++) {
         // These are indexed starting at LAST (i.e. refname minus1)
         std::cout
-            << "    " << refNameToString((StdVideoAV1ReferenceName)(ref+1)) << ": "
-            << frame->pictureInfo.referenceNameSlotIndices[ref] << std::endl;
+            << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": "
+            << frame->pictureInfo.referenceNameSlotIndices[ref-1] << std::endl;
     }
     std::cout << "  ]" << std::endl
         << "  pictureInfo.predictionMode: " << predictionModeToString(frame->pictureInfo.predictionMode) << std::endl
