@@ -302,7 +302,7 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  pictureInfo.rateControlGroup: " << rcGrpToString(frame->pictureInfo.rateControlGroup) << std::endl
         << "  pictureInfo.constantQIndex: " << frame->pictureInfo.constantQIndex << std::endl
         << "  stdPictureInfo.refresh_frame_flags: 0x"
-          << std::hex << std::setw(2) << std::setfill('0') << frame->stdPictureInfo.refresh_frame_flags << std::dec << std::endl
+          << std::hex << std::setfill('0') << std::setw(2) << (int)frame->stdPictureInfo.refresh_frame_flags << std::dec << std::endl
         << "  stdPictureInfo.primary_ref_frame: " << refNameToString((StdVideoAV1ReferenceName)frame->stdPictureInfo.primary_ref_frame) << std::endl
         << "  stdPictureInfo.flags.error_resilient_mode: " << frame->stdPictureInfo.flags.error_resilient_mode << std::endl
         << "  stdPictureInfo.flags.show_frame: " << frame->stdPictureInfo.flags.show_frame << std::endl
