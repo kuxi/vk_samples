@@ -290,7 +290,7 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  constQp.qpIntra: " << frame->constQp.qpIntra
         << "  pictureInfo.referenceNameSlotIndices: [" << std::endl;
     for (int ref = STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME;
-            ref < STD_VIDEO_AV1_REFERENCE_NAME_MAX_ENUM;
+            ref <= STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME;
             ref++) {
         std::cout
             << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": "
