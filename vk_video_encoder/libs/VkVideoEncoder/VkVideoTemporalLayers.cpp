@@ -57,10 +57,10 @@ bool VkVideoTemporalLayers::CanReference(int current_pattern_idx, int other_patt
         assert(!"Invalid pattern index");
         return false;
     }
-    if (other_pattern_idx == 0) {
+    if (current_pattern_idx == 3) {
+        return other_pattern_idx == 2;
+    } else if (other_pattern_idx == 0) {
         return true;
-    } else if (other_pattern_idx == 2) {
-        return current_pattern_idx == 3;
     } else {
         return false;
     }
