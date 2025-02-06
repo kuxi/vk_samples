@@ -292,9 +292,10 @@ void VkVideoEncoderAV1::DumpDpbInfo(VkVideoEncodeFrameInfoAV1* frame) {
             << "    frameId: " << m_dpbAV1->GetFrameId(dpbidx) << std::endl
             << "    temporal_layer: " << m_dpbAV1->GetTemporalLayer(dpbidx) << std::endl
             << "    refName: " << refNameToString(m_dpbAV1->GetRefName(dpbidx)) << std::endl
-            << "    picOrderCntVal: " << m_dpbAV1->GetPicOrderCntVal(dpbidx) << std::endl;
+            << "    picOrderCntVal: " << m_dpbAV1->GetPicOrderCntVal(dpbidx) << std::endl
+            << "  >" << std::endl;
     }
-        ;
+    std::cout << "]" << std::endl ;
 }
 
 void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
