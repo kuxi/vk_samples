@@ -128,6 +128,7 @@ public:
                          const StdVideoAV1SequenceHeader *seqHdr,
                          bool bShowExistingFrame, bool bShownKeyFrameOrSwitch,
                          bool bErrorResilientMode, bool bOverlayFrame,
+                         bool isLastTl2,
                          StdVideoAV1ReferenceName refName,
                          VkVideoEncoderAV1FrameUpdateType frameUpdateType);
     void DpbDestroy();
@@ -167,7 +168,7 @@ public:
                                   bool bOverlayFrame);
     void UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExistingFrame,
                            StdVideoAV1ReferenceName refName,
-                           VkVideoEncoderAV1FrameUpdateType frameUpdateType);
+                           VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2);
 
     void SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType,
                                    int temporal_layer,

@@ -209,6 +209,7 @@ int8_t VkEncDpbAV1::DpbPictureEnd(int8_t dpbIndx, VkSharedBaseObj<VulkanVideoIma
                          const StdVideoAV1SequenceHeader *seqHdr,
                          bool bShowExistingFrame, bool bShownKeyFrameOrSwitch,
                          bool bErrorResilientMode, bool bOverlayFrame,
+                         bool isLastTl2,
                          StdVideoAV1ReferenceName refName,
                          VkVideoEncoderAV1FrameUpdateType frameUpdateType)
 {
@@ -220,7 +221,7 @@ int8_t VkEncDpbAV1::DpbPictureEnd(int8_t dpbIndx, VkSharedBaseObj<VulkanVideoIma
     UpdatePrimaryRefBufIdMap(refName, bShowExistingFrame,
                              bErrorResilientMode, bOverlayFrame);
     UpdateRefBufIdMap(bShownKeyFrameOrSwitch, bShowExistingFrame,
-                      refName, frameUpdateType);
+                      refName, frameUpdateType, isLastTl2);
 
     // Release current image.  Only count references.
     ReleaseFrame(dpbIndx);
@@ -350,7 +351,8 @@ VkVideoEncoderAV1FrameUpdateType VkEncDpbAV1::GetFrameUpdateType(StdVideoAV1Refe
     } else if (refName == STD_VIDEO_AV1_REFERENCE_NAME_LAST2_FRAME) {
         frameUpdateType = LF2_UPDATE;
     } else if (refName == STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME) {
-        frameUpdateType = LF3_UPDATE;
+        // TL2 should skip refreshing anything
+        frameUpdateType = NO_UPDATE;
     }
 
     return frameUpdateType;
@@ -564,15 +566,38 @@ void VkEncDpbAV1::UpdatePrimaryRefBufIdMap(StdVideoAV1ReferenceName refName,
 
 void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExistingFrame,
                                     StdVideoAV1ReferenceName refName,
-                                    VkVideoEncoderAV1FrameUpdateType frameUpdateType)
+                                    VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2)
 {
     // For shown key frame and S-frames virtual buffer mapping does not change
     if (bShownKeyFrameOrSwitch || (frameUpdateType == NO_UPDATE) ) {
         return;
     }
-    // Hardcode 3 layer things
-    for (int32_t i = 1; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
-        m_refBufIdMap[i] = 1;
+    if (frameUpdateType == LF_UPDATE) {
+        // Going to update TL0
+        // Point all refs to vbi 1
+        for (int32_t i = 1; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
+            m_refBufIdMap[i] = 1;
+        }
+    } else if (frameUpdateType == LF2_UPDATE) {
+        // Going to update TL1
+        // Point all refs to vbi 2
+        for (int32_t i = 1; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
+            m_refBufIdMap[i] = 2;
+        }
+        // Except the dependency - which is still vbi 1 (TL 0)
+        m_refBufIdMap[1] = 1;
+    } else if (!isLastTl2) {
+        // Going to encode first TL2
+        // All refs should point to vbi 1 again (TL 0)
+        for (int32_t i = 1; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
+            m_refBufIdMap[i] = 1;
+        }
+    } else {
+        // Going to encode first TL2
+        // All refs should point to vbi 2 (TL 1)
+        for (int32_t i = 1; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
+            m_refBufIdMap[i] = 2;
+        }
     }
     // TODO: do I really need this?
     return;

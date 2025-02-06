@@ -353,6 +353,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     uint32_t flags = 0;
     int temporal_layer = m_temporal_layers.GetTemporalLayer();
+    bool isLastTl2 = m_temporal_layers.GetTemporalPatternIdx() == 3;
     if (m_encoderConfig->verbose) {
         std::cout << "About to encode tl " << temporal_layer << std::endl;
     }
@@ -397,7 +398,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
         m_dpbAV1->DpbPictureEnd(dpbIndx, encodeFrameInfo->setupImageResource/*nullptr*/, &m_stateAV1.m_sequenceHeader,
                                 pFrameInfo->bShowExistingFrame, pFrameInfo->bShownKeyFrameOrSwitch,
                                 pFrameInfo->stdPictureInfo.flags.error_resilient_mode,
-                                pFrameInfo->bOverlayFrame,
+                                pFrameInfo->bOverlayFrame, false,
                                 refName, frameUpdateType);
         return VK_SUCCESS;
     }
@@ -594,6 +595,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
                             pFrameInfo->bShowExistingFrame, pFrameInfo->bShownKeyFrameOrSwitch,
                             pFrameInfo->stdPictureInfo.flags.error_resilient_mode,
                             pFrameInfo->bOverlayFrame,
+                            isLastTl2,
                             refName, frameUpdateType);
 
 
