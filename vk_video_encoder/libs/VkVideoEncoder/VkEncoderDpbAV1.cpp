@@ -622,7 +622,7 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
                                     VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2)
 {
     // For shown key frame and S-frames virtual buffer mapping does not change
-    if (bShownKeyFrameOrSwitch || (frameUpdateType == NO_UPDATE) ) {
+    if (bShownKeyFrameOrSwitch) {
         return;
     }
     if (frameUpdateType == LF_UPDATE) {
@@ -633,12 +633,12 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
         }
     } else if (frameUpdateType == LF2_UPDATE) {
         // Going to update TL1
-        // Point all refs to vbi 2
+        // Point all refs to vbi 1
         for (int32_t i = 1; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
-            m_refBufIdMap[i] = 2;
+            m_refBufIdMap[i] = 1;
         }
-        // Except the dependency - which is still vbi 1 (TL 0)
-        m_refBufIdMap[1] = 1;
+        // Except the frame refresh - should be at VBI 2 (TL 1)
+        m_refBufIdMap[2] = 2;
     } else if (!isLastTl2) {
         // Going to encode first TL2
         // All refs should point to vbi 1 again (TL 0)
