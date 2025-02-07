@@ -571,7 +571,9 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     // this is needed to explicity mark the unused element in BeginInfo for vkCmdBeginVideoCodingKHR() as inactive
     pFrameInfo->referenceSlotsInfo[0].slotIndex = -1;
-    std::cout << "Overwriting ref_frame_idx table based on references" << std::endl;
+    if (m_encoderConfig->verbose) {
+        std::cout << "Overwriting ref_frame_idx table based on references" << std::endl;
+    }
     if (!pFrameInfo->bShowExistingFrame) {
         if (FrameIsInter(pFrameInfo->stdPictureInfo.frame_type) || FrameIsSwitch(pFrameInfo->stdPictureInfo.frame_type)) {
             bool firstDep = true;
