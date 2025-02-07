@@ -243,11 +243,11 @@ int8_t VkEncDpbAV1::DpbPictureEnd(int8_t dpbIndx, VkSharedBaseObj<VulkanVideoIma
         m_DPB[dpbIndx].dpbImageView = dpbImageView;
     }
 
+    UpdateRefBufIdMap(bShownKeyFrameOrSwitch, bShowExistingFrame,
+                      refName, frameUpdateType, isLastTl2);
     UpdateRefFrameDpbIdMap(dpbIndx);
     UpdatePrimaryRefBufIdMap(refName, bShowExistingFrame,
                              bErrorResilientMode, bOverlayFrame);
-    UpdateRefBufIdMap(bShownKeyFrameOrSwitch, bShowExistingFrame,
-                      refName, frameUpdateType, isLastTl2);
 
     // Release current image.  Only count references.
     ReleaseFrame(dpbIndx);
