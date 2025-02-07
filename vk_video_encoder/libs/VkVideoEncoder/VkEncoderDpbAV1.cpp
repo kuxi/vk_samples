@@ -742,6 +742,10 @@ void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictu
     for (int dpbId = 0; dpbId < m_maxDpbSize; dpbId++) {
         if (GetRefCount(dpbId) != 0 && VkVideoTemporalLayers::CanReference(temporal_idx, m_DPB[dpbId].temporal_idx)) {
             if (m_DPB[dpbId].picOrderCntVal < curPicOrderCntVal) {
+                if (curPicOrderCntVal - m_DPB[dpbId].picOrderCntVal > 4) {
+                    // Don't reference pics that are too old
+                    continue;
+                }
                 refFrameDpbIdListL0[numRefFramesL0] = dpbId;
                 refFramePocListL0[numRefFramesL0] = m_DPB[dpbId].picOrderCntVal;
                 numRefFramesL0++;
