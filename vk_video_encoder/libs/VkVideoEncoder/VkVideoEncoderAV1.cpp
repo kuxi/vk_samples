@@ -280,6 +280,13 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  stdPictureInfo.refresh_frame_flags: 0x"
           << std::hex << std::setfill('0') << std::setw(2) << (int)frame->stdPictureInfo.refresh_frame_flags << std::dec << std::endl
         << "  stdPictureInfo.primary_ref_frame: " << refNameToString((StdVideoAV1ReferenceName)frame->stdPictureInfo.primary_ref_frame) << std::endl
+        << "  stdPictureInfo.ref_frame_idx: [" << std::endl;
+    for (StdVideoAV1ReferenceName ref : refNameList) {
+        int refminuslast = ref - STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME;
+        std::cout << "    " << refNameToString(ref) << ": "
+            << (int)frame->stdPictureInfo.ref_frame_idx[refminuslast] << std::endl;
+    }
+    std::cout << "  ]" << std::endl
         << "  stdPictureInfo.flags.error_resilient_mode: " << frame->stdPictureInfo.flags.error_resilient_mode << std::endl
         << "  stdPictureInfo.flags.show_frame: " << frame->stdPictureInfo.flags.show_frame << std::endl
         << "  stdExtensionHeader: <sid: "
