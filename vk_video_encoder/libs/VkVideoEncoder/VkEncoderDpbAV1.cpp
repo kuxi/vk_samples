@@ -71,6 +71,30 @@ static StdVideoAV1ReferenceName refNameFullList[] =
     STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME
 };
 
+std::string refNameToString(StdVideoAV1ReferenceName refName) {
+    switch (refName) {
+        case STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME:
+            return "INTRA";
+        case STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME:
+            return "LAST";
+        case STD_VIDEO_AV1_REFERENCE_NAME_LAST2_FRAME:
+            return "LAST2";
+        case STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME:
+            return "LAST3";
+        case STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME:
+            return "GOLDEN";
+        case STD_VIDEO_AV1_REFERENCE_NAME_BWDREF_FRAME:
+            return "BWDREF";
+        case STD_VIDEO_AV1_REFERENCE_NAME_ALTREF2_FRAME:
+            return "ALTREF2";
+        case STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME:
+            return "ALTREF";
+        case STD_VIDEO_AV1_REFERENCE_NAME_INVALID:
+            return "INVALID";
+    }
+    return "no match";
+}
+
 VkEncDpbAV1::VkEncDpbAV1()
     : m_maxDpbSize(0)
     , m_mapRefDirToSingleRefType(true)
@@ -542,6 +566,35 @@ void VkEncDpbAV1::UpdateRefFrameDpbIdMap(int8_t dpbIndx)
         }
     }
 
+}
+
+void VkEncDpbAV1::DumpState() {
+    std::cout << "DPB state: <" << std::endl
+        << "  refBufIdMap: [";
+    for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
+        std::cout << "    " << refNameToString((StdVideoAV1ReferenceName)i) << ": "
+            << m_refBufIdMap[i] << std::endl;
+    }
+    std::cout << "  ]" << std::endl
+        << "  refFrameDpbIdMap: [" << std::endl;
+    for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
+        std::cout << "    VBI " << i << ": "
+            << m_refFrameDpbIdMap[i] << std::endl;
+    }
+    std::cout << "  ]" << std::endl <<
+        "  DPB state: [" << std::endl;
+    for (int32_t i = 0; i < m_maxDpbSize; i++) {
+        if (m_DPB[i].refCount != 0) {
+            std::cout << "    Slot " << i << ": <"
+                << "      frameId: " << m_DPB[i].frameId << std::endl
+                << "      refCount: " << m_DPB[i].refCount << std::endl
+                << "      temporal_layer: " << m_DPB[i].temporal_layer << std::endl
+                << "      refName: " << refNameToString(m_DPB[i].refName) << std::endl
+                << "      picOrderCntVal: " << m_DPB[i].picOrderCntVal << std::endl
+                << "    >" << std::endl;
+        }
+    }
+    std:: cout << "  ]" << std::endl << ">" << std::endl;
 }
 
 void VkEncDpbAV1::UpdatePrimaryRefBufIdMap(StdVideoAV1ReferenceName refName,

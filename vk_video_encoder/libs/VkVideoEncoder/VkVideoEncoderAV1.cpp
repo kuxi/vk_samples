@@ -37,30 +37,6 @@ static StdVideoAV1ReferenceName refNameList[] =
     STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME
 };
 
-std::string refNameToString(StdVideoAV1ReferenceName refName) {
-    switch (refName) {
-        case STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME:
-            return "INTRA";
-        case STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME:
-            return "LAST";
-        case STD_VIDEO_AV1_REFERENCE_NAME_LAST2_FRAME:
-            return "LAST2";
-        case STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME:
-            return "LAST3";
-        case STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME:
-            return "GOLDEN";
-        case STD_VIDEO_AV1_REFERENCE_NAME_BWDREF_FRAME:
-            return "BWDREF";
-        case STD_VIDEO_AV1_REFERENCE_NAME_ALTREF2_FRAME:
-            return "ALTREF2";
-        case STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME:
-            return "ALTREF";
-        case STD_VIDEO_AV1_REFERENCE_NAME_INVALID:
-            return "INVALID";
-    }
-    return "no match";
-}
-
 std::string predictionModeToString(VkVideoEncodeAV1PredictionModeKHR mode) {
     switch (mode) {
         case VK_VIDEO_ENCODE_AV1_PREDICTION_MODE_INTRA_ONLY_KHR:
@@ -280,22 +256,6 @@ VkResult VkVideoEncoderAV1::StartOfVideoCodingEncodeOrder(VkSharedBaseObj<VkVide
     }
 
     return VK_SUCCESS;
-}
-void VkVideoEncoderAV1::DumpDpbInfo(VkVideoEncodeFrameInfoAV1* frame) {
-    std::cout << "DPB: [" << std::endl;
-    for (uint32_t i = 0; i < frame->numDpbImageResources; i++) {
-        int dpbidx = frame->referenceSlotsInfo[i].slotIndex;
-        if (dpbidx < 0) {
-            continue;
-        }
-        std::cout << "  " << dpbidx << ": <" << std::endl
-            << "    frameId: " << m_dpbAV1->GetFrameId(dpbidx) << std::endl
-            << "    temporal_layer: " << m_dpbAV1->GetTemporalLayer(dpbidx) << std::endl
-            << "    refName: " << refNameToString(m_dpbAV1->GetRefName(dpbidx)) << std::endl
-            << "    picOrderCntVal: " << m_dpbAV1->GetPicOrderCntVal(dpbidx) << std::endl
-            << "  >" << std::endl;
-    }
-    std::cout << "]" << std::endl ;
 }
 
 void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
@@ -609,7 +569,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     if (m_encoderConfig->verboseFrameStruct) {
         DumpFrameInfo(pFrameInfo);
-        DumpDpbInfo(pFrameInfo);
+        m_dpbAV1->DumpState();
     }
 
     return VK_SUCCESS;

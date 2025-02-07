@@ -45,6 +45,8 @@ enum VkVideoEncoderAV1FrameUpdateType {
     NO_UPDATE       = 10,        // No update to reference frame management
 };
 
+std::string refNameToString(StdVideoAV1ReferenceName refName);
+
 struct DpbEntryAV1 {
     enum { MAX_TILE_COLS = 16, MAX_TILE_ROWS = 16 };
 
@@ -174,6 +176,7 @@ public:
                                    int temporal_layer,
                                    StdVideoAV1FrameType frameType,
                                    uint32_t curPicOrderCntVal);
+    void DumpState();
     int32_t GetDpbIdx(int32_t refNameMinus1) { return m_refName2DpbIdx[refNameMinus1]; }
     int32_t GetDpbIdx(int32_t groupId, int32_t i) {
         int32_t refNameMinus1 = (groupId == 0) ? m_refNamesInGroup1[i] : m_refNamesInGroup2[i];
