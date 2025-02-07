@@ -571,6 +571,32 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     // this is needed to explicity mark the unused element in BeginInfo for vkCmdBeginVideoCodingKHR() as inactive
     pFrameInfo->referenceSlotsInfo[0].slotIndex = -1;
+    std::cout << "Overwriting ref_frame_idx table based on references" << std::endl;
+    if (!pFrameInfo->bShowExistingFrame) {
+        if (FrameIsInter(pFrameInfo->stdPictureInfo.frame_type) || FrameIsSwitch(pFrameInfo->stdPictureInfo.frame_type)) {
+            bool firstDep = true;
+            for (int dep = STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME;
+                    dep <= STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME;
+                    dep++) {
+                if (pFrameInfo->pictureInfo.referenceNameSlotIndices[dep-1] != -1) {
+                    // There's a dependency on `dep`
+                    // Figure out which VBI that ref points to.
+                    int refbufid = m_dpbAV1->GetRefBufId((StdVideoAV1ReferenceName)dep);
+
+                    if (firstDep) {
+                        for (StdVideoAV1ReferenceName ref : refNameList) {
+                            pFrameInfo->stdPictureInfo.ref_frame_idx[ref - STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME] = refbufid;
+                        }
+                    } else {
+                        std::cout << "Unexpected extra frame dependency" << std::endl;
+                        pFrameInfo->stdPictureInfo.ref_frame_idx[STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME - STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME] = refbufid;
+                    }
+                    firstDep = false;
+                }
+            }
+
+        }
+    }
 
     if (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) {
         assert(m_numBFramesToEncode != 0);

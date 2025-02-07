@@ -628,6 +628,8 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
     if (bShownKeyFrameOrSwitch) {
         return;
     }
+    // By never updating, we essentially enforce each reference to always refer to the same vbi slot.
+    return;
     if (frameUpdateType == LF_UPDATE) {
         // Going to update TL0
         // Point all refs to vbi 1
