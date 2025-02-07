@@ -579,7 +579,7 @@ void VkEncDpbAV1::DumpState() {
         << "  refFrameDpbIdMap: [" << std::endl;
     for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
         std::cout << "    VBI " << i << ": "
-            << m_refFrameDpbIdMap[i] << std::endl;
+            << (int)m_refFrameDpbIdMap[i] << std::endl;
     }
     std::cout << "  ]" << std::endl <<
         "  DPB state: [" << std::endl;
