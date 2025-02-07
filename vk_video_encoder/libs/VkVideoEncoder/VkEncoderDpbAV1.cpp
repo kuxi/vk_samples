@@ -197,6 +197,7 @@ int8_t VkEncDpbAV1::DpbPictureStart(StdVideoAV1FrameType frameType,
                                     StdVideoAV1ReferenceName refName,
                                     uint32_t picOrderCntVal, uint32_t frameId,
                                     int temporal_layer,
+                                    int temporal_idx,
                                     bool bShowExistingFrame, int32_t frameToShowBufId)
 {
     int8_t dpbIndx = INVALID_IDX;
@@ -214,6 +215,7 @@ int8_t VkEncDpbAV1::DpbPictureStart(StdVideoAV1FrameType frameType,
 
         m_DPB[dpbIndx].frameId = frameId;
         m_DPB[dpbIndx].temporal_layer = temporal_layer;
+        m_DPB[dpbIndx].temporal_idx = temporal_idx;
         m_DPB[dpbIndx].picOrderCntVal = picOrderCntVal;
         m_DPB[dpbIndx].frameType = frameType;
         m_DPB[dpbIndx].refName = refName;
@@ -589,6 +591,7 @@ void VkEncDpbAV1::DumpState() {
                 << "      frameId: " << m_DPB[i].frameId << std::endl
                 << "      refCount: " << m_DPB[i].refCount << std::endl
                 << "      temporal_layer: " << m_DPB[i].temporal_layer << std::endl
+                << "      temporal_idx: " << m_DPB[i].temporal_idx << std::endl
                 << "      refName: " << refNameToString(m_DPB[i].refName) << std::endl
                 << "      picOrderCntVal: " << m_DPB[i].picOrderCntVal << std::endl
                 << "    >" << std::endl;
@@ -707,7 +710,7 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
 
 }
 
-void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType, int temporal_layer, StdVideoAV1FrameType frame_type,
+void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType, int temporal_idx, StdVideoAV1FrameType frame_type,
                                             uint32_t curPicOrderCntVal)
 {
     m_numRefFramesL0 = 0;
@@ -735,7 +738,7 @@ void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictu
     int32_t refFramePocListL1[STD_VIDEO_AV1_NUM_REF_FRAMES];
 
     for (int dpbId = 0; dpbId < m_maxDpbSize; dpbId++) {
-        if (GetRefCount(dpbId) != 0 && VkVideoTemporalLayers::CanReference(temporal_layer, m_DPB[dpbId].temporal_layer)) {
+        if (GetRefCount(dpbId) != 0 && VkVideoTemporalLayers::CanReference(temporal_idx, m_DPB[dpbId].temporal_idx)) {
             if (m_DPB[dpbId].picOrderCntVal < curPicOrderCntVal) {
                 refFrameDpbIdListL0[numRefFramesL0] = dpbId;
                 refFramePocListL0[numRefFramesL0] = m_DPB[dpbId].picOrderCntVal;

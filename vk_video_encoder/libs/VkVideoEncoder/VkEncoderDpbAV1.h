@@ -56,6 +56,7 @@ struct DpbEntryAV1 {
     StdVideoAV1FrameType frameType;
     StdVideoAV1ReferenceName refName;
     int temporal_layer;
+    int temporal_idx;
 
     // The YCbCr dpb image resource
     VkSharedBaseObj<VulkanVideoImagePoolNode>  dpbImageView;
@@ -122,7 +123,7 @@ public:
     int8_t DpbPictureStart(StdVideoAV1FrameType frameType,
                            StdVideoAV1ReferenceName refName,
                            uint32_t picOrderCntVal,uint32_t frameId,
-                           int temporal_layer,
+                           int temporal_layer, int temporal_idx,
                            bool bShowExistingFrame, int32_t frameToShowMapId);
     // 3. End Picture
     int8_t DpbPictureEnd(int8_t dpbIndx,
@@ -173,7 +174,7 @@ public:
                            VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2);
 
     void SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType,
-                                   int temporal_layer,
+                                   int temporal_idx,
                                    StdVideoAV1FrameType frameType,
                                    uint32_t curPicOrderCntVal);
     void DumpState();

@@ -320,7 +320,8 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
 
     uint32_t flags = 0;
     int temporal_layer = m_temporal_layers.GetTemporalLayer();
-    bool isLastTl2 = m_temporal_layers.GetTemporalPatternIdx() == 3;
+    int temporal_idx = m_temporal_layers.GetTemporalPatternIdx();
+    bool isLastTl2 = temporal_idx == 3;
     if (m_encoderConfig->verbose) {
         std::cout << "About to encode tl " << temporal_layer << std::endl;
     }
@@ -340,7 +341,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     }
     InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, temporal_layer, refName);
     if (!pFrameInfo->bShowExistingFrame) {
-        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, temporal_layer, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
+        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, temporal_idx, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
         // For B pictures, L1 must be non zero.  Switch to P picture if L1 is zero.
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) && (m_dpbAV1->GetNumRefsL1()  == 0)) {
             pFrameInfo->gopPosition.pictureType = VkVideoGopStructure::FRAME_TYPE_P;
@@ -353,7 +354,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     int8_t dpbIndx = m_dpbAV1->DpbPictureStart(pFrameInfo->stdPictureInfo.frame_type, refName,
                                                pFrameInfo->picOrderCntVal,
                                                pFrameInfo->stdPictureInfo.current_frame_id,
-                                               temporal_layer,
+                                               temporal_layer, temporal_idx,
                                                pFrameInfo->bShowExistingFrame, pFrameInfo->frameToShowBufId);
 
     assert(dpbIndx >= 0);
