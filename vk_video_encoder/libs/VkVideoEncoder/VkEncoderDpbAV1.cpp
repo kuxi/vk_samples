@@ -570,7 +570,7 @@ void VkEncDpbAV1::UpdateRefFrameDpbIdMap(int8_t dpbIndx)
 
 void VkEncDpbAV1::DumpState() {
     std::cout << "DPB state: <" << std::endl
-        << "  refBufIdMap: [";
+        << "  refBufIdMap: [" << std::endl;
     for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
         std::cout << "    " << refNameToString((StdVideoAV1ReferenceName)i) << ": "
             << m_refBufIdMap[i] << std::endl;
@@ -585,7 +585,7 @@ void VkEncDpbAV1::DumpState() {
         "  DPB state: [" << std::endl;
     for (int32_t i = 0; i < m_maxDpbSize; i++) {
         if (m_DPB[i].refCount != 0) {
-            std::cout << "    Slot " << i << ": <"
+            std::cout << "    Slot " << i << ": <" << std::endl
                 << "      frameId: " << m_DPB[i].frameId << std::endl
                 << "      refCount: " << m_DPB[i].refCount << std::endl
                 << "      temporal_layer: " << m_DPB[i].temporal_layer << std::endl
