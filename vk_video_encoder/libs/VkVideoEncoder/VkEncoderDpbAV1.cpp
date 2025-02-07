@@ -572,13 +572,13 @@ void VkEncDpbAV1::DumpState() {
     std::cout << "DPB state: <" << std::endl
         << "  refBufIdMap: [" << std::endl;
     for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
-        std::cout << "    " << refNameToString((StdVideoAV1ReferenceName)i) << ": "
+        std::cout << "    " << refNameToString((StdVideoAV1ReferenceName)i) << ": (vbi)"
             << m_refBufIdMap[i] << std::endl;
     }
     std::cout << "  ]" << std::endl
         << "  refFrameDpbIdMap: [" << std::endl;
     for (int32_t i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; i++) {
-        std::cout << "    VBI " << i << ": "
+        std::cout << "    VBI " << i << ": (DPB)"
             << (int)m_refFrameDpbIdMap[i] << std::endl;
     }
     std::cout << "  ]" << std::endl <<

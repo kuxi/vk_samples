@@ -269,7 +269,7 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
             ref++) {
         // These are indexed starting at LAST (i.e. refname minus1)
         std::cout
-            << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": "
+            << "    " << refNameToString((StdVideoAV1ReferenceName)ref) << ": (DPB)"
             << frame->pictureInfo.referenceNameSlotIndices[ref-1] << std::endl;
     }
     std::cout << "  ]" << std::endl
@@ -283,7 +283,7 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  stdPictureInfo.ref_frame_idx: [" << std::endl;
     for (StdVideoAV1ReferenceName ref : refNameList) {
         int refminuslast = ref - STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME;
-        std::cout << "    " << refNameToString(ref) << ": "
+        std::cout << "    " << refNameToString(ref) << ": (vbi)"
             << (int)frame->stdPictureInfo.ref_frame_idx[refminuslast] << std::endl;
     }
     std::cout << "  ]" << std::endl
@@ -414,12 +414,14 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     for (uint32_t groupId = 0; groupId < 2; groupId++) {
         for (int32_t i = 0; i < m_dpbAV1->GetNumRefsInGroup(groupId); i++) {
             int32_t refNameMinus1 = m_dpbAV1->GetRefNameMinus1(groupId, i);
-            if (m_encoderConfig->verbose) {
-                std::cout << "Reference " << i << ": " << refNameToString((StdVideoAV1ReferenceName)(refNameMinus1 + 1)) << std::endl;
-            }
 
             int32_t dpbIdx = m_dpbAV1->GetDpbIdx(groupId, i);
             assert(dpbIdx == m_dpbAV1->GetDpbIdx(refNameMinus1));
+            if (m_encoderConfig->verbose) {
+                std::cout << "Reference " << i << ": "
+                    << refNameToString((StdVideoAV1ReferenceName)(refNameMinus1 + 1))
+                    << " (DPB " << dpbIdx << ")" << std::endl;
+            }
 
             assert(pFrameInfo->pictureInfo.referenceNameSlotIndices[refNameMinus1] == -1);
             pFrameInfo->pictureInfo.referenceNameSlotIndices[refNameMinus1] = dpbIdx;
