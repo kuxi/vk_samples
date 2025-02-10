@@ -341,6 +341,11 @@ bool EncoderConfigAV1::InitRateControl()
         0.2,
         0.4,
     };
+    // LIBAOM uses cumulative bitrates
+    if (rateControlMode != VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
+        layerRatio[1] = 0.6;
+        layerRatio[2] = 1.0;
+    }
 
     if (verbose) {
         std::cout << "Initializing RC. totalBitrate: " << totalBitrate << ", hrdBitrate: " << hrdBitrate << ". Initializing layers" << std::endl;
