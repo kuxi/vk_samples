@@ -346,7 +346,7 @@ bool EncoderConfigAV1::InitRateControl()
         layerRatio[1] = 0.6;
         layerRatio[2] = 1.0;
     }
-    if(gopStructure->GetTemporalLayerCount() == 1) {
+    if(gopStructure.GetTemporalLayerCount() == 1) {
         layerRatio[0] = 1.0;
     }
 

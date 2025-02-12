@@ -874,6 +874,7 @@ void VkVideoEncoderAV1::InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequen
 
     pStdPictureInfo->pExtensionHeader = &pFrameInfo->stdExtensionHeader;
 
+    pFrameInfo->stdExtensionHeader.spatial_id = 0;
     pFrameInfo->stdExtensionHeader.temporal_id = temporal_layer;
 
     if (m_encoderConfig->enableTiles) {
