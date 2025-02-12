@@ -346,6 +346,9 @@ bool EncoderConfigAV1::InitRateControl()
         layerRatio[1] = 0.6;
         layerRatio[2] = 1.0;
     }
+    if(gopStructure->GetTemporalLayerCount() == 1) {
+        layerRatio[0] = 1.0;
+    }
 
     if (verbose) {
         std::cout << "Initializing RC. totalBitrate: " << totalBitrate << ", hrdBitrate: " << hrdBitrate << ". Initializing layers" << std::endl;
@@ -397,7 +400,11 @@ bool EncoderConfigAV1::GetRateControlParameters(VkVideoEncodeRateControlInfoKHR*
         }
     }
 
-    pRcInfoAV1->flags = VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REFERENCE_PATTERN_DYADIC_BIT_KHR ;
+    if (gopStructure.GetTemporalLayerCount() > 1) {
+        pRcInfoAV1->flags = VK_VIDEO_ENCODE_AV1_RATE_CONTROL_TEMPORAL_LAYER_PATTERN_DYADIC_BIT_KHR;
+    } else {
+        pRcInfoAV1->flags = VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REGULAR_GOP_BIT_KHR;
+    }
     pRcInfoAV1->gopFrameCount = UINT32_MAX;
     pRcInfoAV1->keyFramePeriod = UINT32_MAX;
     pRcInfoAV1->consecutiveBipredictiveFrameCount = gopStructure.GetConsecutiveBFrameCount();
