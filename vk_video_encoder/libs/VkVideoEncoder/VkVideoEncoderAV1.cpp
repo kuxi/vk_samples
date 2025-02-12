@@ -554,6 +554,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     pFrameInfo->numDpbImageResources = numReferenceSlots;
 
     pFrameInfo->pictureInfo.primaryReferenceCdfOnly = primaryRefCdfOnly;
+    pFrameInfo->pictureInfo.generateObuExtensionHeader = VK_TRUE;
     if (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_P) {
         pFrameInfo->pictureInfo.rateControlGroup = VK_VIDEO_ENCODE_AV1_RATE_CONTROL_GROUP_PREDICTIVE_KHR;
     } else if (pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) {
