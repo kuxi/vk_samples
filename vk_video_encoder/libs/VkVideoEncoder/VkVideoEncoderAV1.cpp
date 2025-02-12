@@ -275,6 +275,7 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
     std::cout << "  ]" << std::endl
         << "  pictureInfo.predictionMode: " << predictionModeToString(frame->pictureInfo.predictionMode) << std::endl
         << "  pictureInfo.primaryReferenceCdfOnly: " << frame->pictureInfo.primaryReferenceCdfOnly << std::endl
+        << "  pictureInfo.generateObuExtensionHeader: " << frame->pictureInfo.generateObuExtensionHeader << std::endl
         << "  pictureInfo.rateControlGroup: " << rcGrpToString(frame->pictureInfo.rateControlGroup) << std::endl
         << "  pictureInfo.constantQIndex: " << frame->pictureInfo.constantQIndex << std::endl
         << "  stdPictureInfo.refresh_frame_flags: 0x"
