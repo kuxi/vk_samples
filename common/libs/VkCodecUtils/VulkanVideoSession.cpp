@@ -27,6 +27,14 @@ namespace {
 
 #define LOGGER std::cout
 
+void PrintUnexpectedPNext(const void* pNext, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+  VkBaseInStructure base_in = *reinterpret_cast<const VkBaseInStructure*>(pNext);
+  LOGGER << indent_str << "  base_in.sType: " << base_in.sType << std::endl;
+  LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext << std::endl;
+}
+
 void PrintTuningMode(const VkVideoEncodeTuningModeKHR& tuning_mode, int indent) {
   std::string indent_str(indent, ' ');
   switch (tuning_mode) {
@@ -78,7 +86,7 @@ void PrintEncodeUsageInfo(const VkVideoEncodeUsageInfoKHR& encode_usage_info, in
   PrintTuningMode(encode_usage_info.tuningMode, indent + 2);
   LOGGER << indent_str << "encode_usage_info.pNext: " << encode_usage_info.pNext << std::endl;
   if (encode_usage_info.pNext != nullptr) {
-    LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+    PrintUnexpectedPNext(encode_usage_info.pNext, indent + 2);
   }
 }
 
@@ -185,7 +193,7 @@ void PrintVideoSessionCreateInfo(const VkVideoSessionCreateInfoKHR& create_info)
   }
   LOGGER << "create_info.pNext: " << create_info.pNext << std::endl;
   if (create_info.pNext != nullptr) {
-    LOGGER << "  #### Unexpected pNext value" << std::endl;
+    PrintUnexpectedPNext(create_info.pNext, 2);
   }
 }
 } // namespace

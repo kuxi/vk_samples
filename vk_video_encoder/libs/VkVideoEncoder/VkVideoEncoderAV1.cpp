@@ -41,6 +41,14 @@ namespace {
 
 #define LOGGER std::cout
 
+void PrintUnexpectedPNext(const void* pNext, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+  VkBaseInStructure base_in = *reinterpret_cast<const VkBaseInStructure*>(pNext);
+  LOGGER << indent_str << "  base_in.sType: " << base_in.sType << std::endl;
+  LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext << std::endl;
+}
+
 void PrintVideoSessionParametersCreateFlags(const VkVideoSessionParametersCreateFlagsKHR& flags, int indent) {
   std::string indent_str(indent, ' ');
   LOGGER << indent_str << "eQuantizationMapCompatible: " << (flags & VK_VIDEO_SESSION_PARAMETERS_CREATE_QUANTIZATION_MAP_COMPATIBLE_BIT_KHR) << std::endl;
@@ -54,7 +62,7 @@ void PrintAv1VideoSessionParametersCreateInfo(const VkVideoEncodeAV1SessionParam
   LOGGER << indent_str << "av1_session_parameters_create_info.pStdOperatingPoints: " << av1_session_parameters_create_info.pStdOperatingPoints << std::endl;
   LOGGER << indent_str << "av1_session_parameters_create_info.pNext: " << av1_session_parameters_create_info.pNext << std::endl;
   if (av1_session_parameters_create_info.pNext != nullptr) {
-    LOGGER << "  #### Unexpected pNext value" << std::endl;
+    PrintUnexpectedPNext(av1_session_parameters_create_info.pNext, indent + 2);
   }
 }
 

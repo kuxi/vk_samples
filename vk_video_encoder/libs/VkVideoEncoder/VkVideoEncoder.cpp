@@ -50,6 +50,14 @@ static size_t getFormatTexelSize(VkFormat format)
 
 namespace {
 
+void PrintUnexpectedPNext(const void* pNext, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+  VkBaseInStructure base_in = *reinterpret_cast<const VkBaseInStructure*>(pNext);
+  LOGGER << indent_str << "  base_in.sType: " << base_in.sType << std::endl;
+  LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext << std::endl;
+}
+
 void PrintPictureResourceInfo(const VkVideoPictureResourceInfoKHR& resource_info, int indent) {
   std::string indent_str(indent, ' ');
   LOGGER << indent_str << "resource_info: " << std::endl;
@@ -59,7 +67,7 @@ void PrintPictureResourceInfo(const VkVideoPictureResourceInfoKHR& resource_info
   LOGGER << indent_str << "resource_info.imageViewBinding: " << resource_info.imageViewBinding << std::endl;
   LOGGER << indent_str << "resource_info.pNext: " << resource_info.pNext << std::endl;
   if (resource_info.pNext != nullptr) {
-    LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+    PrintUnexpectedPNext(resource_info.pNext, indent + 2);
   }
 }
 
@@ -216,10 +224,7 @@ void PrintVideoEncodeAV1PictureInfo(const VkVideoEncodeAV1PictureInfoKHR& av1_in
   LOGGER << indent_str << "encode_av1_info.generateObuExtensionHeader: " << av1_info.generateObuExtensionHeader << std::endl;
   LOGGER << indent_str << "encode_av1_info.pNext: " << av1_info.pNext << std::endl;
   if (av1_info.pNext != nullptr) {
-    LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
-    VkBaseInStructure base_in = *reinterpret_cast<const VkBaseInStructure*>(av1_info.pNext);
-    LOGGER << indent_str << "  base_in.sType: " << base_in.sType << std::endl;
-    LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext << std::endl;
+    PrintUnexpectedPNext(av1_info.pNext, indent + 2);
   }
 }
 
@@ -467,7 +472,7 @@ void PrintBeginCodingInfo(const VkVideoBeginCodingInfoKHR& begin_info) {
   }
   LOGGER << "begin_info.pNext: " << begin_info.pNext << std::endl;
   if (begin_info.pNext != nullptr) {
-    LOGGER << "  #### Unexpected pNext value" << std::endl;
+    PrintUnexpectedPNext(begin_info.pNext, 2);
   }
 }
 
