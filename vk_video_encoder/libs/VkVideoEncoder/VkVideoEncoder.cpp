@@ -93,8 +93,8 @@ void PrintAv1GlobalMotion(const StdVideoAV1GlobalMotion& global_motion, int inde
 
 void PrintAv1ExtensionHeader(const StdVideoEncodeAV1ExtensionHeader& extension_header, int indent) {
   std::string indent_str(indent, ' ');
-  LOGGER << indent_str << "extension_header.temporal_id: " << extension_header.temporal_id << std::endl;
-  LOGGER << indent_str << "extension_header.spatial_id: " << extension_header.spatial_id << std::endl;
+  LOGGER << indent_str << "extension_header.temporal_id: " << (int)extension_header.temporal_id << std::endl;
+  LOGGER << indent_str << "extension_header.spatial_id: " << (int)extension_header.spatial_id << std::endl;
 }
 
 void PrintStdAv1PictureInfoFlags(const StdVideoEncodeAV1PictureInfoFlags& flags, int indent) {
