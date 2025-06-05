@@ -217,6 +217,9 @@ void PrintVideoEncodeAV1PictureInfo(const VkVideoEncodeAV1PictureInfoKHR& av1_in
   LOGGER << indent_str << "encode_av1_info.pNext: " << av1_info.pNext << std::endl;
   if (av1_info.pNext != nullptr) {
     LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+    VkBaseInStructure base_in = *reinterpret_cast<const VkBaseInStructure*>(av1_info.pNext);
+    LOGGER << indent_str << "  base_in.sType: " << base_in.sType;
+    LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext;
   }
 }
 
@@ -253,9 +256,14 @@ void PrintReferenceSlotInfo(const VkVideoReferenceSlotInfoKHR& slot_info, int in
     PrintPictureResourceInfo(*slot_info.pPictureResource, indent + 2);
   }
   LOGGER << indent_str << "reference.pNext: " << slot_info.pNext << std::endl;
+
   if (slot_info.pNext != nullptr) {
     const StdVideoEncodeAV1ReferenceInfo* std_av1_reference_info = reinterpret_cast<const StdVideoEncodeAV1ReferenceInfo*>(slot_info.pNext);
-    PrintAv1StdReferenceInfo(*std_av1_reference_info, indent + 2);
+    if (std_av1_reference_info != nullptr) {
+      PrintAv1StdReferenceInfo(*std_av1_reference_info, indent + 2);
+    } else {
+      LOGGER << indent_str << "  reference.pNext is not a StdVideoEncodeAV1ReferenceInfo";
+    }
   }
 }
 
@@ -299,12 +307,151 @@ void PrintCodingControlFlags(const VkVideoCodingControlFlagsKHR& flags, int inde
   LOGGER << indent_str << "eEncodeQualityLevel: " << (flags & VK_VIDEO_CODING_CONTROL_ENCODE_QUALITY_LEVEL_BIT_KHR) << std::endl;
 }
 
+
+void PrintRateControlMode(const VkVideoEncodeRateControlModeFlagBitsKHR& mode, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eDefault: " << (mode & VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DEFAULT_KHR);
+  LOGGER << indent_str << "eCbr: " << (mode & VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR);
+  LOGGER << indent_str << "eVbr: " << (mode & VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR);
+  LOGGER << indent_str << "eDisabled: " << (mode & VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR);
+}
+
+void PrintAv1FrameSize(const VkVideoEncodeAV1FrameSizeKHR& frame_size, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "frame_size.intraFrameSize: " << frame_size.intraFrameSize;
+  LOGGER << indent_str << "frame_size.predictiveFrameSize: " << frame_size.predictiveFrameSize;
+  LOGGER << indent_str << "frame_size.bipredictiveFrameSize: " << frame_size.bipredictiveFrameSize;
+}
+
+void PrintAV1QIndex(const VkVideoEncodeAV1QIndexKHR& qindex, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "qindex.intraQIndex: " << qindex.intraQIndex;
+  LOGGER << indent_str << "qindex.predictiveQIndex: " << qindex.predictiveQIndex;
+  LOGGER << indent_str << "qindex.bipredictiveQIndex: " << qindex.bipredictiveQIndex;
+}
+
+void PrintVideoEncodeAV1RateControlLayerInfo(const VkVideoEncodeAV1RateControlLayerInfoKHR& layer_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "layer_info.useMinQIndex: " << layer_info.useMinQIndex;
+  LOGGER << indent_str << "layer_info.minQIndex: ";
+  PrintAV1QIndex(layer_info.minQIndex, indent + 2);
+  LOGGER << indent_str << "layer_info.useMaxQIndex: " << layer_info.useMaxQIndex;
+  LOGGER << indent_str << "layer_info.maxQIndex: ";
+  PrintAV1QIndex(layer_info.maxQIndex, indent + 2);
+  LOGGER << indent_str << "layer_info.useMaxFrameSize: " << layer_info.useMaxFrameSize;
+  LOGGER << indent_str << "layer_info.maxFrameSize: ";
+  PrintAv1FrameSize(layer_info.maxFrameSize, indent + 2);
+}
+
+void PrintRateControlLayerInfo(const VkVideoEncodeRateControlLayerInfoKHR& layer_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "layer_info.averageBitrate: " << layer_info.averageBitrate;
+  LOGGER << indent_str << "layer_info.maxBitrate: " << layer_info.maxBitrate;
+  LOGGER << indent_str << "layer_info.frameRateNumerator: " << layer_info.frameRateNumerator;
+  LOGGER << indent_str << "layer_info.frameRateDenominator: " << layer_info.frameRateDenominator;
+  LOGGER << indent_str << "layer_info.pNext: " << layer_info.pNext;
+  if (layer_info.pNext != nullptr) {
+    const VkVideoEncodeAV1RateControlLayerInfoKHR* av1_layer_info = reinterpret_cast<const VkVideoEncodeAV1RateControlLayerInfoKHR*>(layer_info.pNext);
+    if (av1_layer_info != nullptr) {
+      PrintVideoEncodeAV1RateControlLayerInfo(*av1_layer_info, indent + 2);
+    } else {
+      LOGGER << "  layer_info.pNext is not a VideoEncodeAV1RateControlLayerInfoKHR";
+    }
+  }
+}
+
+void PrintVideoEncodeQualityLevelInfo(const VkVideoEncodeQualityLevelInfoKHR& quality_level_info, int indent);
+
+void PrintVideoEncodeRateControlInfo(const VkVideoEncodeRateControlInfoKHR& rate_control_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "rate_control_info.flags: ";
+  LOGGER << indent_str << "rate_control_info.rateControlMode:";
+  PrintRateControlMode(rate_control_info.rateControlMode, indent + 2);
+  LOGGER << indent_str << "rate_control_info.layerCount: " << rate_control_info.layerCount;
+  for (uint32_t i = 0; i < rate_control_info.layerCount; ++i) {
+    LOGGER << indent_str << "  rate_control_info.pLayers[" << i << "]: ";
+    PrintRateControlLayerInfo(rate_control_info.pLayers[i], indent + 2);
+  }
+  LOGGER << indent_str << "rate_control_info.virtualBufferSizeInMs: " << rate_control_info.virtualBufferSizeInMs;
+  LOGGER << indent_str << "rate_control_info.initialVirtualBufferSizeInMs: " << rate_control_info.initialVirtualBufferSizeInMs;
+  LOGGER << indent_str << "rate_control_info.pNext: " << rate_control_info.pNext;
+  if (rate_control_info.pNext != nullptr) {
+    const VkVideoEncodeQualityLevelInfoKHR* quality_level_info = reinterpret_cast<const VkVideoEncodeQualityLevelInfoKHR*>(rate_control_info.pNext);
+    if (quality_level_info != nullptr) {
+      PrintVideoEncodeQualityLevelInfo(*quality_level_info, indent + 2);
+    } else {
+      LOGGER << "  rate_control_info.pNext is not a VideoEncodeQualityLevelInfoKHR";
+    }
+  }
+}
+
+void PrintVideoEncodeQualityLevelInfo(const VkVideoEncodeQualityLevelInfoKHR& quality_level_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "quality_level_info.qualityLevel: " << quality_level_info.qualityLevel;
+  LOGGER << indent_str << "quality_level_info.pNext: " << quality_level_info.pNext;
+  if (quality_level_info.pNext != nullptr) {
+    const VkVideoEncodeRateControlInfoKHR* rate_control_info = reinterpret_cast<const VkVideoEncodeRateControlInfoKHR*>(quality_level_info.pNext);
+    if (rate_control_info != nullptr) {
+      PrintVideoEncodeRateControlInfo(*rate_control_info, indent + 2);
+    } else {
+      LOGGER << "  quality_level_info.pNext is not a VideoEncodeRateControlInfoKHR";
+    }
+  }
+}
+
+void PrintVideoEncodeAV1RateControlInfoFlags(const VkVideoEncodeAV1RateControlFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eRegularGop" << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REGULAR_GOP_BIT_KHR);
+  LOGGER << indent_str << "eReferencePatternDyadic: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REFERENCE_PATTERN_DYADIC_BIT_KHR);
+  LOGGER << indent_str << "eReferencePatternFlat: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REFERENCE_PATTERN_FLAT_BIT_KHR);
+  LOGGER << indent_str << "eTemporalLayerPatternDyadic: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_TEMPORAL_LAYER_PATTERN_DYADIC_BIT_KHR);
+}
+
+void PrintVideoEncodeAV1RateControlInfo(const VkVideoEncodeAV1RateControlInfoKHR& av1_rate_control_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "av1_rate_control_info.flags: ";
+  PrintVideoEncodeAV1RateControlInfoFlags(av1_rate_control_info.flags, indent + 2);
+  LOGGER << indent_str << "av1_rate_control_info.gopFrameCount: " << av1_rate_control_info.gopFrameCount;
+  LOGGER << indent_str << "av1_rate_control_info.keyFramePeriod: " << av1_rate_control_info.keyFramePeriod;
+  LOGGER << indent_str << "av1_rate_control_info.consecutiveBipredictiveFrameCount: " << av1_rate_control_info.consecutiveBipredictiveFrameCount;
+  LOGGER << indent_str << "av1_rate_control_info.temporalLayerCount: " << av1_rate_control_info.temporalLayerCount;
+  LOGGER << indent_str << "av1_rate_control_info.pNext: " << av1_rate_control_info.pNext;
+  if (av1_rate_control_info.pNext != nullptr) {
+    const VkVideoEncodeRateControlInfoKHR* rate_control_info = reinterpret_cast<const VkVideoEncodeRateControlInfoKHR*>(av1_rate_control_info.pNext);
+    if (rate_control_info != nullptr) {
+      PrintVideoEncodeRateControlInfo(*rate_control_info, 2);
+    } else {
+      const VkVideoEncodeQualityLevelInfoKHR* quality_level_info = reinterpret_cast<const VkVideoEncodeQualityLevelInfoKHR*>(av1_rate_control_info.pNext);
+      if (quality_level_info != nullptr) {
+        PrintVideoEncodeQualityLevelInfo(*quality_level_info, 2);
+      } else {
+        LOGGER << "  ##### av1_rate_control_info.pNext is not any expected instance";
+      }
+    }
+  }
+}
+
 void PrintVideoCodingControlInfo(const VkVideoCodingControlInfoKHR& control_info) {
   LOGGER << "control_info.flags: " << std::endl;
   PrintCodingControlFlags(control_info.flags, 2);
   LOGGER << "control_info.pNext: " << control_info.pNext << std::endl;
   if (control_info.pNext != nullptr) {
-    LOGGER << "  #### Unexpected pNext value" << std::endl;
+    const VkVideoEncodeAV1RateControlInfoKHR* av1_rate_control_info = reinterpret_cast<const VkVideoEncodeAV1RateControlInfoKHR*>(control_info.pNext);
+    if (av1_rate_control_info != nullptr) {
+      PrintVideoEncodeAV1RateControlInfo(*av1_rate_control_info, 2);
+    } else {
+      const VkVideoEncodeRateControlInfoKHR* rate_control_info = reinterpret_cast<const VkVideoEncodeRateControlInfoKHR*>(control_info.pNext);
+      if (rate_control_info != nullptr) {
+        PrintVideoEncodeRateControlInfo(*rate_control_info, 2);
+      } else {
+        const VkVideoEncodeQualityLevelInfoKHR* quality_level_info = reinterpret_cast<const VkVideoEncodeQualityLevelInfoKHR*>(control_info.pNext);
+        if (quality_level_info != nullptr) {
+          PrintVideoEncodeQualityLevelInfo(*quality_level_info, 2);
+        } else {
+          LOGGER << "  ##### control_info.pNext is not any expected instance";
+        }
+      }
+    }
   }
 }
 
@@ -315,12 +462,8 @@ void PrintBeginCodingInfo(const VkVideoBeginCodingInfoKHR& begin_info) {
   LOGGER << "begin_info.referenceSlotCount: " << begin_info.referenceSlotCount << std::endl;
   LOGGER << "begin_info.pReferenceSlots: " << begin_info.pReferenceSlots << std::endl;
   for (uint32_t i = 0; i < begin_info.referenceSlotCount; ++i) {
-    LOGGER << "  begin_info.pReferenceSlots[" << i << "].slotIndex: " << begin_info.pReferenceSlots[i].slotIndex << std::endl;
-    LOGGER << "  begin_info.pReferenceSlots[" << i << "].pPictureResource: " << begin_info.pReferenceSlots[i].pPictureResource << std::endl;
-    if (begin_info.pReferenceSlots[i].pPictureResource != nullptr) {
-      PrintPictureResourceInfo(*begin_info.pReferenceSlots[i].pPictureResource, 4);
-    }
-    LOGGER << "  begin_info.pReferenceSlots[" << i << "].pNext: " << begin_info.pReferenceSlots[i].pNext << std::endl;
+    LOGGER << "  begin_info.pReferenceSlots[" << i << "]" << std::endl;
+    PrintReferenceSlotInfo(begin_info.pReferenceSlots[i], 4);
   }
   LOGGER << "begin_info.pNext: " << begin_info.pNext << std::endl;
   if (begin_info.pNext != nullptr) {
