@@ -45,6 +45,291 @@ static size_t getFormatTexelSize(VkFormat format)
     }
 }
 
+#define LOGGER std::cout
+
+
+namespace {
+
+void PrintPictureResourceInfo(const VkVideoPictureResourceInfoKHR& resource_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "resource_info: " << std::endl;
+  LOGGER << indent_str << "resource_info.codedExtent: " << resource_info.codedExtent.width << " " << resource_info.codedExtent.height << std::endl;
+  LOGGER << indent_str << "resource_info.codedOffset: " << resource_info.codedOffset.x << " " << resource_info.codedOffset.y << std::endl;
+  LOGGER << indent_str << "resource_info.baseArrayLayer: " << resource_info.baseArrayLayer << std::endl;
+  LOGGER << indent_str << "resource_info.imageViewBinding: " << resource_info.imageViewBinding << std::endl;
+  LOGGER << indent_str << "resource_info.pNext: " << resource_info.pNext << std::endl;
+  if (resource_info.pNext != nullptr) {
+    LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+  }
+}
+
+void PrintAv1TileInfo(const StdVideoAV1TileInfo& tile_info, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1Quantization(const StdVideoAV1Quantization& quantization, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1Segmentation(const StdVideoAV1Segmentation& segmentation, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1LoopFilter(const StdVideoAV1LoopFilter& loop_filter, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1CDEF(const StdVideoAV1CDEF& cdef, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1LoopRestoration(const StdVideoAV1LoopRestoration& loop_restoration, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1GlobalMotion(const StdVideoAV1GlobalMotion& global_motion, int indent) {
+  std::string indent_str(indent, ' ');
+}
+
+void PrintAv1ExtensionHeader(const StdVideoEncodeAV1ExtensionHeader& extension_header, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "extension_header.temporal_id: " << extension_header.temporal_id << std::endl;
+  LOGGER << indent_str << "extension_header.spatial_id: " << extension_header.spatial_id << std::endl;
+}
+
+void PrintStdAv1PictureInfoFlags(const StdVideoEncodeAV1PictureInfoFlags& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "error_resilient_mode: " << flags.error_resilient_mode << std::endl;
+  LOGGER << indent_str << "disable_cdf_update: " << flags.disable_cdf_update << std::endl;
+  LOGGER << indent_str << "use_superres: " << flags.use_superres << std::endl;
+  LOGGER << indent_str << "render_and_frame_size_different: " << flags.render_and_frame_size_different << std::endl;
+  LOGGER << indent_str << "allow_screen_content_tools: " << flags.allow_screen_content_tools << std::endl;
+  LOGGER << indent_str << "is_filter_switchable: " << flags.is_filter_switchable << std::endl;
+  LOGGER << indent_str << "force_integer_mv: " << flags.force_integer_mv << std::endl;
+  LOGGER << indent_str << "frame_size_override_flag: " << flags.frame_size_override_flag << std::endl;
+  LOGGER << indent_str << "buffer_removal_time_present_flag: " << flags.buffer_removal_time_present_flag << std::endl;
+  LOGGER << indent_str << "allow_intrabc: " << flags.allow_intrabc << std::endl;
+  LOGGER << indent_str << "frame_refs_short_signaling: " << flags.frame_refs_short_signaling << std::endl;
+  LOGGER << indent_str << "allow_high_precision_mv: " << flags.allow_high_precision_mv << std::endl;
+  LOGGER << indent_str << "is_motion_mode_switchable: " << flags.is_motion_mode_switchable << std::endl;
+  LOGGER << indent_str << "use_ref_frame_mvs: " << flags.use_ref_frame_mvs << std::endl;
+  LOGGER << indent_str << "disable_frame_end_update_cdf: " << flags.disable_frame_end_update_cdf << std::endl;
+  LOGGER << indent_str << "allow_warped_motion: " << flags.allow_warped_motion << std::endl;
+  LOGGER << indent_str << "reduced_tx_set: " << flags.reduced_tx_set << std::endl;
+  LOGGER << indent_str << "skip_mode_present: " << flags.skip_mode_present << std::endl;
+  LOGGER << indent_str << "delta_q_present: " << flags.delta_q_present << std::endl;
+  LOGGER << indent_str << "delta_lf_present: " << flags.delta_lf_present << std::endl;
+  LOGGER << indent_str << "delta_lf_multi: " << flags.delta_lf_multi << std::endl;
+  LOGGER << indent_str << "segmentation_enabled: " << flags.segmentation_enabled << std::endl;
+  LOGGER << indent_str << "segmentation_update_map: " << flags.segmentation_update_map << std::endl;
+  LOGGER << indent_str << "segmentation_temporal_update: " << flags.segmentation_temporal_update << std::endl;
+  LOGGER << indent_str << "segmentation_update_data: " << flags.segmentation_update_data << std::endl;
+  LOGGER << indent_str << "UsesLr: " << flags.UsesLr << std::endl;
+  LOGGER << indent_str << "usesChromaLr: " << flags.usesChromaLr << std::endl;
+  LOGGER << indent_str << "show_frame: " << flags.show_frame << std::endl;
+  LOGGER << indent_str << "showable_frame: " << flags.showable_frame << std::endl;
+}
+
+void PrintAv1StdPictureInfo(const StdVideoEncodeAV1PictureInfo& picture_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "std_av1_picture_info: " << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.flags: " << std::endl;
+  PrintStdAv1PictureInfoFlags(picture_info.flags, indent + 2);
+  LOGGER << indent_str << "std_av1_picture_info.frame_type: " << picture_info.frame_type << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.frame_presentation_time: " << picture_info.frame_presentation_time << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.current_frame_id: " << picture_info.current_frame_id << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.order_hint: " << (int)picture_info.order_hint << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.primary_ref_frame: " << (int)picture_info.primary_ref_frame << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.refresh_frame_flags: " << std::hex << (int)picture_info.refresh_frame_flags << std::dec << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.coded_denom: " << (int)picture_info.coded_denom << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.render_width_minus_1: " << picture_info.render_width_minus_1 << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.render_height_minus_1: " << picture_info.render_height_minus_1 << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.interpolation_filter: " << picture_info.interpolation_filter << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.TxMode: " << picture_info.TxMode << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.delta_q_res: " << (int)picture_info.delta_q_res << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.delta_lf_res: " << (int)picture_info.delta_lf_res << std::endl;
+  LOGGER << indent_str << "std_av1_picture_info.ref_order_hint: " << std::endl;
+  for (int i = 0; i < STD_VIDEO_AV1_NUM_REF_FRAMES; ++i) {
+    LOGGER << indent_str << " std_av1_picture_info.ref_order_hint[" << i << "]: " << (int)picture_info.ref_order_hint[i] << std::endl;
+  }
+  LOGGER << indent_str << "std_av1_picture_info.ref_frame_idx: " << std::endl;
+  for (int i = 0; i < STD_VIDEO_AV1_REFS_PER_FRAME; ++i) {
+    LOGGER << indent_str << " std_av1_picture_info.ref_frame_idx[" << i << "]: " << (int)picture_info.ref_frame_idx[i] << std::endl;
+  }
+  LOGGER << indent_str << "std_av1_picture_info.delta_frame_id_minus_1: " << std::endl;
+  for (int i = 0; i < STD_VIDEO_AV1_REFS_PER_FRAME; ++i) {
+    LOGGER << indent_str << " std_av1_picture_info.delta_frame_id_minus_1[" << i << "]: " << picture_info.delta_frame_id_minus_1[i] << std::endl;
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pTileInfo: " << picture_info.pTileInfo << std::endl;
+  if (picture_info.pTileInfo != nullptr) {
+    PrintAv1TileInfo(*picture_info.pTileInfo, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pQuantization: " << picture_info.pQuantization << std::endl;
+  if (picture_info.pQuantization != nullptr) {
+    PrintAv1Quantization(*picture_info.pQuantization, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pSegmentation: " << picture_info.pSegmentation << std::endl;
+  if (picture_info.pSegmentation != nullptr) {
+    PrintAv1Segmentation(*picture_info.pSegmentation, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pLoopFilter: " << picture_info.pLoopFilter << std::endl;
+  if (picture_info.pLoopFilter != nullptr) {
+    PrintAv1LoopFilter(*picture_info.pLoopFilter, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pCDEF: " << picture_info.pCDEF << std::endl;
+  if (picture_info.pCDEF != nullptr) {
+    PrintAv1CDEF(*picture_info.pCDEF, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pLoopRestoration: " << picture_info.pLoopRestoration << std::endl;
+  if (picture_info.pLoopRestoration != nullptr) {
+    PrintAv1LoopRestoration(*picture_info.pLoopRestoration, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pGlobalMotion: " << picture_info.pGlobalMotion << std::endl;
+  if (picture_info.pGlobalMotion != nullptr) {
+    PrintAv1GlobalMotion(*picture_info.pGlobalMotion, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pExtensionHeader: " << picture_info.pExtensionHeader << std::endl;
+  if (picture_info.pExtensionHeader != nullptr) {
+    PrintAv1ExtensionHeader(*picture_info.pExtensionHeader, indent + 2);
+  }
+  LOGGER << indent_str << "std_av1_picture_info.pBufferRemovalTimes: " << picture_info.pBufferRemovalTimes << std::endl;
+  if (picture_info.pBufferRemovalTimes != nullptr) {
+    LOGGER << indent_str << "  std_av1_picture_info.pBufferRemovalTimes: " << *picture_info.pBufferRemovalTimes << std::endl;
+  }
+}
+
+void PrintVideoEncodeAV1PictureInfo(const VkVideoEncodeAV1PictureInfoKHR& av1_info, int indent) {
+  std::string indent_str(indent, ' ');
+
+  LOGGER << indent_str << "encode_av1_info.predictionMode: " << av1_info.predictionMode << std::endl;
+  LOGGER << indent_str << "encode_av1_info.rateControlGroup: " << av1_info.rateControlGroup << std::endl;
+  LOGGER << indent_str << "encode_av1_info.constantQIndex: " << av1_info.constantQIndex << std::endl;
+  LOGGER << indent_str << "encode_av1_info.pStdPictureInfo: " << av1_info.pStdPictureInfo << std::endl;
+  if (av1_info.pStdPictureInfo != nullptr) {
+    PrintAv1StdPictureInfo(*av1_info.pStdPictureInfo, indent + 2);
+  }
+  LOGGER << indent_str << "encode_av1_info.referenceNameSlotIndices: ";
+  for (uint32_t i = 0; i < VK_MAX_VIDEO_AV1_REFERENCES_PER_FRAME_KHR; ++i) {
+    LOGGER << indent_str << "  encode_av1_info.referenceNameSlotIndices[" << i << "]: " << av1_info.referenceNameSlotIndices[i] << std::endl;
+  }
+  LOGGER << indent_str << "encode_av1_info.primaryReferenceCdfOnly: " << av1_info.primaryReferenceCdfOnly << std::endl;
+  LOGGER << indent_str << "encode_av1_info.generateObuExtensionHeader: " << av1_info.generateObuExtensionHeader << std::endl;
+  LOGGER << indent_str << "encode_av1_info.pNext: " << av1_info.pNext << std::endl;
+  if (av1_info.pNext != nullptr) {
+    LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
+  }
+}
+
+void PrintEncodeInfoFlags(const VkVideoEncodeFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eWithEmphasisMap: " << (flags & VK_VIDEO_ENCODE_WITH_EMPHASIS_MAP_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "flags.eWithQuantizationDeltaMap: " << (flags & VK_VIDEO_ENCODE_WITH_QUANTIZATION_DELTA_MAP_BIT_KHR) << std::endl;
+}
+
+void PrintAv1ReferenceInfoFlags(const StdVideoEncodeAV1ReferenceInfoFlags& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "disable_frame_end_update_cdf: " << flags.disable_frame_end_update_cdf << std::endl;
+  LOGGER << indent_str << "segmentation_enabled: " << flags.segmentation_enabled << std::endl;
+}
+
+void PrintAv1StdReferenceInfo(const StdVideoEncodeAV1ReferenceInfo& reference_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "av1_reference.flags: " << std::endl;
+  PrintAv1ReferenceInfoFlags(reference_info.flags, indent + 2);
+  LOGGER << indent_str << "av1_reference.RefFrameId: " << reference_info.RefFrameId << std::endl;
+  LOGGER << indent_str << "av1_reference.frame_type: " << reference_info.frame_type << std::endl;
+  LOGGER << indent_str << "av1_reference.OrderHint: " << (int)reference_info.OrderHint << std::endl;
+  LOGGER << indent_str << "av1_reference.pExtensionHeader: " << reference_info.pExtensionHeader << std::endl;
+  if (reference_info.pExtensionHeader != nullptr) {
+    PrintAv1ExtensionHeader(*reference_info.pExtensionHeader, indent + 2);
+  }
+}
+
+void PrintReferenceSlotInfo(const VkVideoReferenceSlotInfoKHR& slot_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "reference.slotIndex: " << slot_info.slotIndex << std::endl;
+  LOGGER << indent_str << "reference.pPictureResource: " << slot_info.pPictureResource << std::endl;
+  if (slot_info.pPictureResource != nullptr) {
+    PrintPictureResourceInfo(*slot_info.pPictureResource, indent + 2);
+  }
+  LOGGER << indent_str << "reference.pNext: " << slot_info.pNext << std::endl;
+  if (slot_info.pNext != nullptr) {
+    const StdVideoEncodeAV1ReferenceInfo* std_av1_reference_info = reinterpret_cast<const StdVideoEncodeAV1ReferenceInfo*>(slot_info.pNext);
+    PrintAv1StdReferenceInfo(*std_av1_reference_info, indent + 2);
+  }
+}
+
+void PrintEncodeInfo(const VkVideoEncodeInfoKHR& encode_info) {
+  LOGGER << "encode_info.flags: " << std::endl;
+  PrintEncodeInfoFlags(encode_info.flags, 2);
+  LOGGER << "encode_info.dstBuffer: " << encode_info.dstBuffer << std::endl;
+  LOGGER << "encode_info.dstBufferOffset: " << encode_info.dstBufferOffset << std::endl;
+  LOGGER << "encode_info.dstBufferRange: " << encode_info.dstBufferRange << std::endl;
+  LOGGER << "encode_info.srcPictureResource:" << std::endl;
+  PrintPictureResourceInfo(encode_info.srcPictureResource, 2);
+  LOGGER << "encode_info.pSetupReferenceSlot: " << encode_info.pSetupReferenceSlot << std::endl;
+  if (encode_info.pSetupReferenceSlot != nullptr) {
+    PrintReferenceSlotInfo(*encode_info.pSetupReferenceSlot, 2);
+  }
+  LOGGER << "encode_info.referenceSlotCount: " << encode_info.referenceSlotCount << std::endl;
+  LOGGER << "encode_info.pReferenceSlots: " << encode_info.pReferenceSlots << std::endl;
+  for (uint32_t i = 0; i < encode_info.referenceSlotCount; ++i) {
+    LOGGER << "  encode_info.pReferenceSlots[" << i << "]" << std::endl;
+    PrintReferenceSlotInfo(encode_info.pReferenceSlots[i], 4);
+  }
+  LOGGER << "encode_info.precedingExternallyEncodedBytes: "
+            << encode_info.precedingExternallyEncodedBytes
+            << std::endl;
+  LOGGER << "encode_info.pNext: "
+            << encode_info.pNext << std::endl;
+  if (encode_info.pNext != nullptr) {
+    const VkVideoEncodeAV1PictureInfoKHR* av1_info =
+        reinterpret_cast<const VkVideoEncodeAV1PictureInfoKHR*>(
+            encode_info.pNext);
+    PrintVideoEncodeAV1PictureInfo(*av1_info, 2);
+  } else {
+    LOGGER << "  encode_info.pNext is null" << std::endl;
+  }
+}
+
+void PrintCodingControlFlags(const VkVideoCodingControlFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eReset: " << (flags & VK_VIDEO_CODING_CONTROL_RESET_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eEncodeRateControl: " << (flags & VK_VIDEO_CODING_CONTROL_ENCODE_RATE_CONTROL_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eEncodeQualityLevel: " << (flags & VK_VIDEO_CODING_CONTROL_ENCODE_QUALITY_LEVEL_BIT_KHR) << std::endl;
+}
+
+void PrintVideoCodingControlInfo(const VkVideoCodingControlInfoKHR& control_info) {
+  LOGGER << "control_info.flags: " << std::endl;
+  PrintCodingControlFlags(control_info.flags, 2);
+  LOGGER << "control_info.pNext: " << control_info.pNext << std::endl;
+  if (control_info.pNext != nullptr) {
+    LOGGER << "  #### Unexpected pNext value" << std::endl;
+  }
+}
+
+void PrintBeginCodingInfo(const VkVideoBeginCodingInfoKHR& begin_info) {
+  LOGGER << "begin_info.flags: " << std::endl;
+  LOGGER << "begin_info.videoSession: " << begin_info.videoSession << std::endl;
+  LOGGER << "begin_info.videoSessionParameters: " << begin_info.videoSessionParameters << std::endl;
+  LOGGER << "begin_info.referenceSlotCount: " << begin_info.referenceSlotCount << std::endl;
+  LOGGER << "begin_info.pReferenceSlots: " << begin_info.pReferenceSlots << std::endl;
+  for (uint32_t i = 0; i < begin_info.referenceSlotCount; ++i) {
+    LOGGER << "  begin_info.pReferenceSlots[" << i << "].slotIndex: " << begin_info.pReferenceSlots[i].slotIndex << std::endl;
+    LOGGER << "  begin_info.pReferenceSlots[" << i << "].pPictureResource: " << begin_info.pReferenceSlots[i].pPictureResource << std::endl;
+    if (begin_info.pReferenceSlots[i].pPictureResource != nullptr) {
+      PrintPictureResourceInfo(*begin_info.pReferenceSlots[i].pPictureResource, 4);
+    }
+    LOGGER << "  begin_info.pReferenceSlots[" << i << "].pNext: " << begin_info.pReferenceSlots[i].pNext << std::endl;
+  }
+  LOGGER << "begin_info.pNext: " << begin_info.pNext << std::endl;
+  if (begin_info.pNext != nullptr) {
+    LOGGER << "  #### Unexpected pNext value" << std::endl;
+  }
+}
+
+} // namespace
+
 VkResult VkVideoEncoder::CreateVideoEncoder(const VulkanDeviceContext* vkDevCtx,
                                             VkSharedBaseObj<EncoderConfig>& encoderConfig,
                                             VkSharedBaseObj<VkVideoEncoder>& encoder)
@@ -1458,6 +1743,7 @@ VkResult VkVideoEncoder::RecordVideoCodingCmd(VkSharedBaseObj<VkVideoEncodeFrame
 
     encodeBeginInfo.pNext = &m_beginRateControlInfo;
 
+    PrintBeginCodingInfo(encodeBeginInfo);
     vkDevCtx->CmdBeginVideoCodingKHR(cmdBuf, &encodeBeginInfo);
 
     if (encodeFrameInfo->controlCmd != VkVideoCodingControlFlagsKHR()) {
@@ -1465,6 +1751,7 @@ VkResult VkVideoEncoder::RecordVideoCodingCmd(VkSharedBaseObj<VkVideoEncodeFrame
         VkVideoCodingControlInfoKHR renderControlInfo = { VK_STRUCTURE_TYPE_VIDEO_CODING_CONTROL_INFO_KHR,
                                                           encodeFrameInfo->pControlCmdChain,
                                                           encodeFrameInfo->controlCmd};
+        PrintVideoCodingControlInfo(renderControlInfo);
         vkDevCtx->CmdControlVideoCodingKHR(cmdBuf, &renderControlInfo);
 
         m_beginRateControlInfo = *(VkVideoEncodeRateControlInfoKHR*)encodeFrameInfo->pControlCmdChain;
@@ -1483,12 +1770,14 @@ VkResult VkVideoEncoder::RecordVideoCodingCmd(VkSharedBaseObj<VkVideoEncodeFrame
         while (pStruct->pNext) pStruct = (VkBaseInStructure*)pStruct->pNext;
         pStruct->pNext = (VkBaseInStructure*)&videoInlineQueryInfoKHR;
 
+        PrintEncodeInfo(encodeFrameInfo->encodeInfo);
         vkDevCtx->CmdEncodeVideoKHR(cmdBuf, &encodeFrameInfo->encodeInfo);
     }
     else
     {
         vkDevCtx->CmdBeginQuery(cmdBuf, queryPool, querySlotId, VkQueryControlFlags());
 
+        PrintEncodeInfo(encodeFrameInfo->encodeInfo);
         vkDevCtx->CmdEncodeVideoKHR(cmdBuf, &encodeFrameInfo->encodeInfo);
 
         vkDevCtx->CmdEndQuery(cmdBuf, queryPool, querySlotId);
