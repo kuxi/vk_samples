@@ -206,6 +206,17 @@ void PrintAv1StdPictureInfo(const StdVideoEncodeAV1PictureInfo& picture_info, in
   }
 }
 
+void PrintVideoInlineQueryInfo(const VkVideoInlineQueryInfoKHR& inline_query_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "inline_query_info.queryPool: " << inline_query_info.queryPool << std::endl;
+  LOGGER << indent_str << "inline_query_info.firstQuery: " << inline_query_info.firstQuery << std::endl;
+  LOGGER << indent_str << "inline_query_info.queryCount: " << inline_query_info.queryCount << std::endl;
+  LOGGER << indent_str << "inline_query_info.pNext: " << inline_query_info.pNext << std::endl;
+  if (inline_query_info.pNext != nullptr) {
+    PrintUnexpectedPNext(inline_query_info.pNext, indent + 2);
+  }
+}
+
 void PrintVideoEncodeAV1PictureInfo(const VkVideoEncodeAV1PictureInfoKHR& av1_info, int indent) {
   std::string indent_str(indent, ' ');
 
@@ -216,7 +227,7 @@ void PrintVideoEncodeAV1PictureInfo(const VkVideoEncodeAV1PictureInfoKHR& av1_in
   if (av1_info.pStdPictureInfo != nullptr) {
     PrintAv1StdPictureInfo(*av1_info.pStdPictureInfo, indent + 2);
   }
-  LOGGER << indent_str << "encode_av1_info.referenceNameSlotIndices: ";
+  LOGGER << indent_str << "encode_av1_info.referenceNameSlotIndices: " << std::endl;
   for (uint32_t i = 0; i < VK_MAX_VIDEO_AV1_REFERENCES_PER_FRAME_KHR; ++i) {
     LOGGER << indent_str << "  encode_av1_info.referenceNameSlotIndices[" << i << "]: " << av1_info.referenceNameSlotIndices[i] << std::endl;
   }
@@ -224,7 +235,12 @@ void PrintVideoEncodeAV1PictureInfo(const VkVideoEncodeAV1PictureInfoKHR& av1_in
   LOGGER << indent_str << "encode_av1_info.generateObuExtensionHeader: " << av1_info.generateObuExtensionHeader << std::endl;
   LOGGER << indent_str << "encode_av1_info.pNext: " << av1_info.pNext << std::endl;
   if (av1_info.pNext != nullptr) {
-    PrintUnexpectedPNext(av1_info.pNext, indent + 2);
+    const VkVideoInlineQueryInfoKHR* inline_query_info = reinterpret_cast<const VkVideoInlineQueryInfoKHR*>(av1_info.pNext);
+    if (inline_query_info != nullptr) {
+      PrintVideoInlineQueryInfo(*inline_query_info, indent + 2);
+    } else {
+      LOGGER << indent_str << "  encode_av1_info.pNext is not a VideoInlineQueryInfoKHR" << std::endl;
+    }
   }
 }
 
@@ -337,14 +353,14 @@ void PrintAV1QIndex(const VkVideoEncodeAV1QIndexKHR& qindex, int indent) {
 
 void PrintVideoEncodeAV1RateControlLayerInfo(const VkVideoEncodeAV1RateControlLayerInfoKHR& layer_info, int indent) {
   std::string indent_str(indent, ' ');
-  LOGGER << indent_str << "layer_info.useMinQIndex: " << layer_info.useMinQIndex << std::endl;
-  LOGGER << indent_str << "layer_info.minQIndex: " << std::endl;
+  LOGGER << indent_str << "av1_layer_info.useMinQIndex: " << layer_info.useMinQIndex << std::endl;
+  LOGGER << indent_str << "av1_layer_info.minQIndex: " << std::endl;
   PrintAV1QIndex(layer_info.minQIndex, indent + 2);
-  LOGGER << indent_str << "layer_info.useMaxQIndex: " << layer_info.useMaxQIndex << std::endl;
-  LOGGER << indent_str << "layer_info.maxQIndex: " << std::endl;
+  LOGGER << indent_str << "av1_layer_info.useMaxQIndex: " << layer_info.useMaxQIndex << std::endl;
+  LOGGER << indent_str << "av1_layer_info.maxQIndex: " << std::endl;
   PrintAV1QIndex(layer_info.maxQIndex, indent + 2);
-  LOGGER << indent_str << "layer_info.useMaxFrameSize: " << layer_info.useMaxFrameSize << std::endl;
-  LOGGER << indent_str << "layer_info.maxFrameSize: " << std::endl;
+  LOGGER << indent_str << "av1_layer_info.useMaxFrameSize: " << layer_info.useMaxFrameSize << std::endl;
+  LOGGER << indent_str << "av1_layer_info.maxFrameSize: " << std::endl;
   PrintAv1FrameSize(layer_info.maxFrameSize, indent + 2);
 }
 
@@ -375,7 +391,7 @@ void PrintVideoEncodeRateControlInfo(const VkVideoEncodeRateControlInfoKHR& rate
   LOGGER << indent_str << "rate_control_info.layerCount: " << rate_control_info.layerCount << std::endl;
   for (uint32_t i = 0; i < rate_control_info.layerCount; ++i) {
     LOGGER << indent_str << "  rate_control_info.pLayers[" << i << "]: " << std::endl;
-    PrintRateControlLayerInfo(rate_control_info.pLayers[i], indent + 2);
+    PrintRateControlLayerInfo(rate_control_info.pLayers[i], indent + 4);
   }
   LOGGER << indent_str << "rate_control_info.virtualBufferSizeInMs: " << rate_control_info.virtualBufferSizeInMs << std::endl;
   LOGGER << indent_str << "rate_control_info.initialVirtualBufferSizeInMs: " << rate_control_info.initialVirtualBufferSizeInMs << std::endl;
@@ -406,7 +422,7 @@ void PrintVideoEncodeQualityLevelInfo(const VkVideoEncodeQualityLevelInfoKHR& qu
 
 void PrintVideoEncodeAV1RateControlInfoFlags(const VkVideoEncodeAV1RateControlFlagsKHR& flags, int indent) {
   std::string indent_str(indent, ' ');
-  LOGGER << indent_str << "eRegularGop" << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REGULAR_GOP_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eRegularGop: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REGULAR_GOP_BIT_KHR) << std::endl;
   LOGGER << indent_str << "eReferencePatternDyadic: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REFERENCE_PATTERN_DYADIC_BIT_KHR) << std::endl;
   LOGGER << indent_str << "eReferencePatternFlat: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_REFERENCE_PATTERN_FLAT_BIT_KHR) << std::endl;
   LOGGER << indent_str << "eTemporalLayerPatternDyadic: " << (flags & VK_VIDEO_ENCODE_AV1_RATE_CONTROL_TEMPORAL_LAYER_PATTERN_DYADIC_BIT_KHR) << std::endl;
@@ -472,7 +488,12 @@ void PrintBeginCodingInfo(const VkVideoBeginCodingInfoKHR& begin_info) {
   }
   LOGGER << "begin_info.pNext: " << begin_info.pNext << std::endl;
   if (begin_info.pNext != nullptr) {
-    PrintUnexpectedPNext(begin_info.pNext, 2);
+    const VkVideoEncodeRateControlInfoKHR* rate_control_info = reinterpret_cast<const VkVideoEncodeRateControlInfoKHR*>(begin_info.pNext);
+    if (rate_control_info != nullptr) {
+      PrintVideoEncodeRateControlInfo(*rate_control_info, 2);
+    } else {
+      PrintUnexpectedPNext(begin_info.pNext, 2);
+    }
   }
 }
 
