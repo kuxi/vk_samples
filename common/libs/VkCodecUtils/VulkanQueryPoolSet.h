@@ -30,26 +30,7 @@ public:
     VkResult CreateSet(const VulkanDeviceContext* vkDevCtx, uint32_t queryCount,
                        VkQueryType queryType,
                        VkQueryPoolCreateFlags flags = VkQueryPoolCreateFlags(),
-                       const void* pNext = nullptr) {
-
-        DestroySet();
-
-        VkQueryPoolCreateInfo queryPoolCreateInfo = {VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO};
-        queryPoolCreateInfo.queryType = queryType;
-        queryPoolCreateInfo.queryCount = queryCount;
-        queryPoolCreateInfo.pNext = pNext;
-
-        VkResult result = vkDevCtx->CreateQueryPool(*vkDevCtx, &queryPoolCreateInfo, NULL, &m_queryPool);
-        if (result != VK_SUCCESS) {
-            assert(!"Failed to create query pool!");
-            return result;
-        }
-
-        m_queryCount = queryCount;
-        m_vkDevCtx   = vkDevCtx;
-
-        return VK_SUCCESS;
-    }
+                       const void* pNext = nullptr);
 
     void DestroySet() {
 
