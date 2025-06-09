@@ -29,6 +29,126 @@ void PrintUnexpectedPNext(const void* pNext, int indent) {
   LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext << std::endl;
 }
 
+void PrintTuningMode(const VkVideoEncodeTuningModeKHR& tuning_mode, int indent) {
+  std::string indent_str(indent, ' ');
+  switch (tuning_mode) {
+    case VK_VIDEO_ENCODE_TUNING_MODE_DEFAULT_KHR:
+      LOGGER << indent_str << "eDefault" << std::endl;
+      break;
+    case VK_VIDEO_ENCODE_TUNING_MODE_HIGH_QUALITY_KHR:
+      LOGGER << indent_str << "eHighQuality" << std::endl;
+      break;
+    case VK_VIDEO_ENCODE_TUNING_MODE_LOSSLESS_KHR:
+      LOGGER << indent_str << "eLossless" << std::endl;
+      break;
+    case VK_VIDEO_ENCODE_TUNING_MODE_LOW_LATENCY_KHR:
+      LOGGER << indent_str << "eLowLatency" << std::endl;
+      break;
+    case VK_VIDEO_ENCODE_TUNING_MODE_ULTRA_LOW_LATENCY_KHR:
+      LOGGER << indent_str << "eUltraLowLatency" << std::endl;
+      break;
+    case VK_VIDEO_ENCODE_TUNING_MODE_MAX_ENUM_KHR:
+      LOGGER << indent_str << "eMaxEnum" << std::endl;
+      break;
+  }
+}
+
+void PrintVideoEncodeUsageFlags(const VkVideoEncodeUsageFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eDefault: " << (flags & VK_VIDEO_ENCODE_USAGE_DEFAULT_KHR) << std::endl;
+  LOGGER << indent_str << "eConferencing: " << (flags & VK_VIDEO_ENCODE_USAGE_CONFERENCING_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eRecording: " << (flags & VK_VIDEO_ENCODE_USAGE_RECORDING_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eStreaming: " << (flags & VK_VIDEO_ENCODE_USAGE_STREAMING_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eTranscoding: " << (flags & VK_VIDEO_ENCODE_USAGE_TRANSCODING_BIT_KHR) << std::endl;
+}
+
+void PrintVideoContentHints(const VkVideoEncodeContentFlagsKHR& content_hints, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eDefault: " << (content_hints & VK_VIDEO_ENCODE_CONTENT_DEFAULT_KHR) << std::endl;
+  LOGGER << indent_str << "eCamera: " << (content_hints & VK_VIDEO_ENCODE_CONTENT_CAMERA_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eDesktop: " << (content_hints & VK_VIDEO_ENCODE_CONTENT_DESKTOP_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eRendered: " << (content_hints & VK_VIDEO_ENCODE_CONTENT_RENDERED_BIT_KHR) << std::endl;
+}
+
+void PrintEncodeUsageInfo(const VkVideoEncodeUsageInfoKHR& encode_usage_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "encode_usage_info.videoUsageHints: " << std::endl;
+  PrintVideoEncodeUsageFlags(encode_usage_info.videoUsageHints, indent + 2);
+  LOGGER << indent_str << "encode_usage_info.videoContentHints: " << std::endl;
+  PrintVideoContentHints(encode_usage_info.videoContentHints, indent + 2);
+  LOGGER << indent_str << "encode_usage_info.tuningMode: " << std::endl;
+  PrintTuningMode(encode_usage_info.tuningMode, indent + 2);
+  LOGGER << indent_str << "encode_usage_info.pNext: " << encode_usage_info.pNext << std::endl;
+  if (encode_usage_info.pNext != nullptr) {
+    PrintUnexpectedPNext(encode_usage_info.pNext, indent + 2);
+  }
+}
+
+void PrintAv1ProfileInfo(const VkVideoEncodeAV1ProfileInfoKHR& av1_profile_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "av1_profile_info.stdProfile: " << av1_profile_info.stdProfile << std::endl;
+  LOGGER << indent_str << "av1_profile_info.pNext: " << av1_profile_info.pNext << std::endl;
+  if (av1_profile_info.pNext != nullptr) {
+    const VkVideoEncodeUsageInfoKHR* encode_usage_info =
+        reinterpret_cast<const VkVideoEncodeUsageInfoKHR*>(av1_profile_info.pNext);
+    if (encode_usage_info != nullptr) {
+      PrintEncodeUsageInfo(*encode_usage_info, indent + 2);
+    } else {
+      LOGGER << indent_str << "  av1_profile_info.pNext is not a VideoEncodeUsageInfoKHR" << std::endl;
+    }
+  }
+}
+
+void PrintComponentBitDepthFlags(const VkVideoComponentBitDepthFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "e8: " << (flags & VK_VIDEO_COMPONENT_BIT_DEPTH_8_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "e10: " << (flags & VK_VIDEO_COMPONENT_BIT_DEPTH_10_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "e12: " << (flags & VK_VIDEO_COMPONENT_BIT_DEPTH_12_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eInvalid: " << (flags & VK_VIDEO_COMPONENT_BIT_DEPTH_INVALID_KHR) << std::endl;
+}
+
+void PrintSubsamplingFlags(const VkVideoChromaSubsamplingFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eMonochrome: " << (flags & VK_VIDEO_CHROMA_SUBSAMPLING_MONOCHROME_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "e420: " << (flags & VK_VIDEO_CHROMA_SUBSAMPLING_420_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "e422: " << (flags & VK_VIDEO_CHROMA_SUBSAMPLING_422_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "e444: " << (flags & VK_VIDEO_CHROMA_SUBSAMPLING_444_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eInvalid: " << (flags & VK_VIDEO_CHROMA_SUBSAMPLING_INVALID_KHR) << std::endl;
+}
+
+void PrintVideoCodecOperationFlags(const VkVideoCodecOperationFlagsKHR& flags, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "eEncodeAv1: " << (flags & VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eDecodeAv1: " << (flags & VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eEncodeH264: " << (flags & VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eDecodeH264: " << (flags & VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eEncodeH265: " << (flags & VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eDecodeH265: " << (flags & VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR) << std::endl;
+  LOGGER << indent_str << "eNone: " << (flags & VK_VIDEO_CODEC_OPERATION_NONE_KHR) << std::endl;
+}
+
+void PrintVideoProfileInfo(const VkVideoProfileInfoKHR& video_profile_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "video_profile_info.videoCodecOperation: " << std::endl;
+  PrintVideoCodecOperationFlags(video_profile_info.videoCodecOperation, indent + 2);
+  LOGGER << indent_str << "video_profile_info.lumaBitDepth: " << std::endl;
+  PrintComponentBitDepthFlags(video_profile_info.lumaBitDepth, indent + 2);
+  LOGGER << indent_str << "video_profile_info.chromaBitDepth: " << std::endl;
+  PrintComponentBitDepthFlags(video_profile_info.chromaBitDepth, indent + 2);
+  LOGGER << indent_str << "video_profile_info.chromaSubsampling: " << std::endl;
+  PrintSubsamplingFlags(video_profile_info.chromaSubsampling, indent + 2);
+  LOGGER << indent_str << "video_profile_info.pNext: " << video_profile_info.pNext << std::endl;
+  if (video_profile_info.pNext != nullptr) {
+    const VkVideoEncodeAV1ProfileInfoKHR* av1_profile_info =
+        reinterpret_cast<const VkVideoEncodeAV1ProfileInfoKHR*>(video_profile_info.pNext);
+    if (av1_profile_info != nullptr) {
+      PrintAv1ProfileInfo(*av1_profile_info, indent + 2);
+    } else {
+      LOGGER << "video_profile_info.pNext was not an AV1 profile" << std::endl;
+    }
+  }
+}
+
 void PrintEncodeFeedbackFlags(const VkVideoEncodeFeedbackFlagsKHR& flags, int indent) {
   std::string indent_str(indent, ' ');
   LOGGER << indent_str << "eBitstreamBufferOffset: " << (flags & VK_VIDEO_ENCODE_FEEDBACK_BITSTREAM_BUFFER_OFFSET_BIT_KHR) << std::endl;
@@ -42,7 +162,13 @@ void PrintQueryPoolFeedbackCreateInfo(const VkQueryPoolVideoEncodeFeedbackCreate
   PrintEncodeFeedbackFlags(create_info.encodeFeedbackFlags, indent + 2);
   LOGGER << indent_str << "create_info.pNext: " << create_info.pNext << std::endl;
   if (create_info.pNext != nullptr) {
-    PrintUnexpectedPNext(create_info.pNext, indent + 2);
+    const VkVideoProfileInfoKHR* video_profile_info =
+        reinterpret_cast<const VkVideoProfileInfoKHR*>(create_info.pNext);
+    if (video_profile_info != nullptr) {
+      PrintVideoProfileInfo(*video_profile_info, indent + 2);
+    } else {
+      LOGGER << "  create_info.pNext is not a VideoProfileInfoKHR";
+    }
   }
 }
 
