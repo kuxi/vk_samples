@@ -269,6 +269,18 @@ void PrintAv1StdReferenceInfo(const StdVideoEncodeAV1ReferenceInfo& reference_in
   }
 }
 
+void PrintAv1DpbSlotInfo(const VkVideoEncodeAV1DpbSlotInfoKHR& slot_info, int indent) {
+  std::string indent_str(indent, ' ');
+  LOGGER << indent_str << "av1_dpb_slot.pStdReferenceInfo: " << slot_info.pStdReferenceInfo << std::endl;
+  if (slot_info.pStdReferenceInfo != nullptr) {
+    PrintAv1StdReferenceInfo(*slot_info.pStdReferenceInfo, indent + 2);
+  }
+  LOGGER << indent_str << "av1_dpb_slot.pNext: " << slot_info.pNext << std::endl;
+  if (slot_info.pNext != nullptr) {
+    PrintUnexpectedPNext(slot_info.pNext, indent + 2);
+  }
+}
+
 void PrintReferenceSlotInfo(const VkVideoReferenceSlotInfoKHR& slot_info, int indent) {
   std::string indent_str(indent, ' ');
   LOGGER << indent_str << "reference.slotIndex: " << slot_info.slotIndex << std::endl;
@@ -279,11 +291,11 @@ void PrintReferenceSlotInfo(const VkVideoReferenceSlotInfoKHR& slot_info, int in
   LOGGER << indent_str << "reference.pNext: " << slot_info.pNext << std::endl;
 
   if (slot_info.pNext != nullptr) {
-    const StdVideoEncodeAV1ReferenceInfo* std_av1_reference_info = reinterpret_cast<const StdVideoEncodeAV1ReferenceInfo*>(slot_info.pNext);
-    if (std_av1_reference_info != nullptr) {
-      PrintAv1StdReferenceInfo(*std_av1_reference_info, indent + 2);
+    const VkVideoEncodeAV1DpbSlotInfoKHR* av1_dpb_slot_info = reinterpret_cast<const VkVideoEncodeAV1DpbSlotInfoKHR*>(slot_info.pNext);
+    if (av1_dpb_slot_info != nullptr) {
+      PrintAv1DpbSlotInfo(*av1_dpb_slot_info, indent + 2);
     } else {
-      LOGGER << indent_str << "  reference.pNext is not a StdVideoEncodeAV1ReferenceInfo" << std::endl;
+      LOGGER << indent_str << "  reference.pNext is not a VkVideoEncodeAV1DpbSlotInfoKHR" << std::endl;
     }
   }
 }
