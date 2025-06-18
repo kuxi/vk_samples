@@ -37,53 +37,6 @@ static StdVideoAV1ReferenceName refNameList[] =
     STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME
 };
 
-namespace {
-
-#define LOGGER std::cout
-
-void PrintUnexpectedPNext(const void* pNext, int indent) {
-  std::string indent_str(indent, ' ');
-  LOGGER << indent_str << "  #### Unexpected pNext value" << std::endl;
-  VkBaseInStructure base_in = *reinterpret_cast<const VkBaseInStructure*>(pNext);
-  LOGGER << indent_str << "  base_in.sType: " << base_in.sType << std::endl;
-  LOGGER << indent_str << "  base_in.pNext: " << base_in.pNext << std::endl;
-}
-
-void PrintVideoSessionParametersCreateFlags(const VkVideoSessionParametersCreateFlagsKHR& flags, int indent) {
-  std::string indent_str(indent, ' ');
-  LOGGER << indent_str << "eQuantizationMapCompatible: " << (flags & VK_VIDEO_SESSION_PARAMETERS_CREATE_QUANTIZATION_MAP_COMPATIBLE_BIT_KHR) << std::endl;
-}
-
-void PrintAv1VideoSessionParametersCreateInfo(const VkVideoEncodeAV1SessionParametersCreateInfoKHR& av1_session_parameters_create_info, int indent) {
-  std::string indent_str(indent, ' ');
-  LOGGER << indent_str << "av1_session_parameters_create_info.pStdSequenceHeader: " << av1_session_parameters_create_info.pStdSequenceHeader << std::endl;
-  LOGGER << indent_str << "av1_session_parameters_create_info.pStdDecoderModelInfo: " << av1_session_parameters_create_info.pStdDecoderModelInfo << std::endl;
-  LOGGER << indent_str << "av1_session_parameters_create_info.stdOperatingPointCount: " << av1_session_parameters_create_info.stdOperatingPointCount << std::endl;
-  LOGGER << indent_str << "av1_session_parameters_create_info.pStdOperatingPoints: " << av1_session_parameters_create_info.pStdOperatingPoints << std::endl;
-  LOGGER << indent_str << "av1_session_parameters_create_info.pNext: " << av1_session_parameters_create_info.pNext << std::endl;
-  if (av1_session_parameters_create_info.pNext != nullptr) {
-    PrintUnexpectedPNext(av1_session_parameters_create_info.pNext, indent + 2);
-  }
-}
-
-void PrintVideoSessionParametersCreateInfo(const VkVideoSessionParametersCreateInfoKHR& session_parameters_create_info) {
-  LOGGER << "session_parameters_create_info.flags: " << std::endl;
-  PrintVideoSessionParametersCreateFlags(session_parameters_create_info.flags, 2);
-  LOGGER << "session_parameters_create_info.videoSessionParametersTemplate: " << session_parameters_create_info.videoSessionParametersTemplate << std::endl;
-  LOGGER << "session_parameters_create_info.videoSession: " << session_parameters_create_info.videoSession << std::endl;
-  LOGGER << "session_parameters_create_info.pNext: " << session_parameters_create_info.pNext << std::endl;
-  if (session_parameters_create_info.pNext != nullptr) {
-    const VkVideoEncodeAV1SessionParametersCreateInfoKHR* av1_session_parameters_create_info = reinterpret_cast<const VkVideoEncodeAV1SessionParametersCreateInfoKHR*>(session_parameters_create_info.pNext);
-    if (av1_session_parameters_create_info != nullptr) {
-      PrintAv1VideoSessionParametersCreateInfo(*av1_session_parameters_create_info, 2);
-    } else {
-      LOGGER << "  session_parameters_create_info.pNext is not a VideoEncodeAV1SessionParametersCreateInfoKHR" << std::endl;
-    }
-  }else {
-    LOGGER << "  session_parameters_create_info.pNext is null" << std::endl;
-  }
-}
-} // namespace
 
 std::string predictionModeToString(VkVideoEncodeAV1PredictionModeKHR mode) {
     switch (mode) {
@@ -192,7 +145,6 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
                                                           encoderConfig->enableQpMap, m_qpMapTexelSize);
     VkVideoSessionParametersCreateInfoKHR* encodeSessionParametersCreateInfo = videoSessionParametersInfo.getVideoSessionParametersInfo();
     VkVideoSessionParametersKHR sessionParameters;
-    PrintVideoSessionParametersCreateInfo(*encodeSessionParametersCreateInfo);
     result = m_vkDevCtx->CreateVideoSessionParametersKHR(*m_vkDevCtx,
                                                          encodeSessionParametersCreateInfo,
                                                          nullptr,
