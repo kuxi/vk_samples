@@ -25,12 +25,17 @@ GLSLANG_GITURL=$(cat "${REVISION_DIR}/glslang_giturl" | tr -d "\n\r")
 GLSLANG_REVISION=$(cat "${REVISION_DIR}/glslang_revision" | tr -d "\n\r")
 SHADERC_GITURL=$(cat "${REVISION_DIR}/shaderc_giturl" | tr -d "\n\r")
 SHADERC_REVISION=$(cat "${REVISION_DIR}/shaderc_revision" | tr -d "\n\r")
+AOM_GITURL=$(cat "${REVISION_DIR}/aom_giturl" | tr -d "\n\r")
+AOM_REVISION=$(cat "${REVISION_DIR}/aom_revision" | tr -d "\n\r")
 
 echo "GLSLANG_GITURL=${GLSLANG_GITURL}"
 echo "GLSLANG_REVISION=${GLSLANG_REVISION}"
 
 echo "SHADERC_GITURL=${SHADERC_GITURL}"
 echo "SHADERC_REVISION=${SHADERC_REVISION}"
+
+echo "AOM_GITURL=${AOM_GITURL}"
+echo "AOM_REVISION=${AOM_REVISION}"
 
 BUILDDIR=${CURRENT_DIR}
 BASEDIR="$BUILDDIR/external"
@@ -94,6 +99,31 @@ function build_shaderc () {
    # make install
 }
 
+function create_aom () {
+    rm -rf "${BASEDIR}"/aom
+    echo "Creating local aom repository (${BASEDIR}/aom)."
+    mkdir -p "${BASEDIR}"/aom
+    cd "${BASEDIR}"/aom
+    git clone ${AOM_GITURL} .
+    git checkout ${AOM_REVISION}
+}
+
+function update_aom () {
+    echo "Updating ${BASEDIR}/aom"
+    cd "${BASEDIR}"/aom
+    git fetch origin
+    git checkout --force ${AOM_REVISION}
+}
+
+function build_aom () {
+    echo "Building ${BASEDIR}/aom"
+    cd "${BASEDIR}"/aom
+    mkdir -p build
+    cd build
+    cmake -D CMAKE_BUILD_TYPE=Debug ..
+    make -j $CORE_COUNT
+}
+
 function create_moltenvk () {
    rm -rf "${BASEDIR}"/MoltenVK
    echo "Creating local MoltenVK repository (${BASEDIR}/MoltenVK)."
@@ -119,6 +149,7 @@ function build_moltenvk () {
 
 INCLUDE_GLSLANG=false
 INCLUDE_SHADERC=false
+INCLUDE_AOM=false
 INCLUDE_MOLTENVK=false
 NO_SYNC=false
 NO_BUILD=false
@@ -150,6 +181,12 @@ do
         echo "Building MoltenVK ($option)"
       fi
       ;;
+      # options to specify build of aom components
+      -a|--aom)
+      INCLUDE_AOM=true
+      USE_IMPLICIT_COMPONENT_LIST=false
+      echo "Building aom ($option)"
+      ;;
       # options to specify build of spirv-tools components
       -s|--spirv-tools)
       echo "($option) is deprecated and is no longer necessary"
@@ -173,6 +210,7 @@ do
       if [[ $(uname) == "Darwin" ]]; then
         echo "    -m | --moltenvk     # enable moltenvk component"
       fi
+      echo "    -a | --aom          # enable aom component"
       echo "    --no-sync           # skip sync from git"
       echo "    --no-build          # skip build"
       echo "  If any component enables are provided, only those components are enabled."
@@ -193,6 +231,7 @@ if [ ${USE_IMPLICIT_COMPONENT_LIST} == "true" ]; then
     echo "Building MoltenVK"
     INCLUDE_MOLTENVK=true
   fi
+  INCLUDE_AOM=true
 fi
 
 if [ ${INCLUDE_GLSLANG} == "true" ]; then
@@ -230,4 +269,17 @@ if [ ${INCLUDE_MOLTENVK} == "true" ]; then
     echo "Building moltenvk"
     build_moltenvk
   fi
+fi
+
+if [ ${INCLUDE_AOM} == "true" ]; then
+    if [ ${NO_SYNC} == "false" ]; then
+        if [ ! -d "${BASEDIR}/aom" -o ! -d "${BASEDIR}/aom.git" ]; then
+            create_aom
+        fi
+        update_aom
+    fi
+    if [ ${NO_BUILD} == "false" ]; then
+        echo "Building aom"
+        build_aom
+    fi
 fi
