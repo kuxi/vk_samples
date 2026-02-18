@@ -48,7 +48,7 @@ void VkVideoTemporalLayers::BeforeEncode(bool is_keyframe) {
     }
 }
 
-bool VkVideoTemporalLayers::CanReference(int other_pattern_idx) {
+bool VkVideoTemporalLayers::CanReference(int other_pattern_idx) const {
     // we want the following pattern
     //     2     2
     //    /     /

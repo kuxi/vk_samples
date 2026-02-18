@@ -34,7 +34,7 @@ public:
     void BeforeEncode(bool is_keyframe);
 
     // Returns true if frames of `current_temporal_layer` can reference frames of `other_temporal_layer`
-    bool CanReference(int other_temporal_layer);
+    bool CanReference(int other_temporal_layer) const;
 
 private:
     int temporal_layer_count_;

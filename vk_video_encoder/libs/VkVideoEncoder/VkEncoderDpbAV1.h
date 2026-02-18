@@ -176,7 +176,7 @@ public:
                            VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2);
 
     void SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType,
-                                   VkVideoTemporalLayers temporal_layers,
+                                   const VkVideoTemporalLayers& temporal_layers,
                                    StdVideoAV1FrameType frameType,
                                    uint32_t curPicOrderCntVal);
     void DumpState();
