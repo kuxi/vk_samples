@@ -34,11 +34,12 @@ public:
     void BeforeEncode(bool is_keyframe);
 
     // Returns true if frames of `current_temporal_layer` can reference frames of `other_temporal_layer`
-    static bool CanReference(int current_temporal_layer, int other_temporal_layer);
+    bool CanReference(int other_temporal_layer);
 
 private:
     int temporal_layer_count_;
     int pattern_index_;
+    int pattern_length_;
 };
 #endif /* _VKVIDEOENCODER_VKVIDEOTEMPORALLAYERS_H_ */
 

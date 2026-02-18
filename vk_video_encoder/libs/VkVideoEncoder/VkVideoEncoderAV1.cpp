@@ -302,6 +302,7 @@ void VkVideoEncoderAV1::DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame) {
         << "  bIsReference: " << frame->bIsReference << std::endl
         << "  numDpbImageResource: " << frame->numDpbImageResources << std::endl
         << "  encodeInfo.referenceSlotCount: " << frame->encodeInfo.referenceSlotCount << std::endl
+        << "  setupReferenceSlotInfo.slotIndex: " << frame->setupReferenceSlotInfo.slotIndex << std::endl
         << "  referenceSlotsInfo: [" << std::endl;
     for (uint32_t i = 0; i < frame->numDpbImageResources; i++) {
         std::cout << "    slotIndex: " << frame->referenceSlotsInfo[i].slotIndex << std::endl;
@@ -343,7 +344,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     }
     InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, temporal_layer, refName);
     if (!pFrameInfo->bShowExistingFrame) {
-        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, temporal_idx, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
+        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, m_temporal_layers, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
         // For B pictures, L1 must be non zero.  Switch to P picture if L1 is zero.
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) && (m_dpbAV1->GetNumRefsL1()  == 0)) {
             pFrameInfo->gopPosition.pictureType = VkVideoGopStructure::FRAME_TYPE_P;

@@ -20,6 +20,8 @@
 #include "VkVideoEncoderDef.h"
 #include "VkCodecUtils/VulkanVideoImagePool.h"
 #include "VkVideoEncoder/VkVideoGopStructure.h"
+#include "VkVideoEncoder/VkVideoTemporalLayers.h"
+
 
 enum VkVideoEncoderAV1PrimaryRefType {
     REGULAR_FRAME   = 0,        // regular inter frame
@@ -174,7 +176,7 @@ public:
                            VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2);
 
     void SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType,
-                                   int temporal_idx,
+                                   VkVideoTemporalLayers temporal_layers,
                                    StdVideoAV1FrameType frameType,
                                    uint32_t curPicOrderCntVal);
     void DumpState();

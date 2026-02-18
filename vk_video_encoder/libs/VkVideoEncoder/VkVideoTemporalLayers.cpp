@@ -25,10 +25,12 @@ int PATTERN_LENGTH = 4;
 VkVideoTemporalLayers::VkVideoTemporalLayers()
     : temporal_layer_count_(1)
     , pattern_index_(0)
+    , pattern_length_(1)
 { }
 
 void VkVideoTemporalLayers::SetTemporalLayerCountToThree() {
     temporal_layer_count_ = 3;
+    pattern_length_ = PATTERN_LENGTH;
 }
 
 int VkVideoTemporalLayers::GetTemporalLayer() const {
@@ -42,22 +44,22 @@ void VkVideoTemporalLayers::BeforeEncode(bool is_keyframe) {
     if (is_keyframe) {
         pattern_index_ = 0;
     } else {
-        pattern_index_ = (pattern_index_ + 1) % PATTERN_LENGTH;
+        pattern_index_ = (pattern_index_ + 1) % pattern_length_;
     }
 }
 
-bool VkVideoTemporalLayers::CanReference(int current_pattern_idx, int other_pattern_idx) {
+bool VkVideoTemporalLayers::CanReference(int other_pattern_idx) {
     // we want the following pattern
     //     2     2
     //    /     /
     //   /   1-/
     //  /   /   
     // 0-----------0 ....
-    if (current_pattern_idx < 0 || current_pattern_idx >= PATTERN_LENGTH || other_pattern_idx < 0 || other_pattern_idx >= PATTERN_LENGTH) {
+    if (other_pattern_idx < 0 || other_pattern_idx >= pattern_length_) {
         assert(!"Invalid pattern index");
         return false;
     }
-    if (current_pattern_idx == 3) {
+    if (pattern_index_ == 3) {
         return other_pattern_idx == 2;
     } else if (other_pattern_idx == 0) {
         return true;

@@ -712,7 +712,7 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
 
 }
 
-void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType, int temporal_idx, StdVideoAV1FrameType frame_type,
+void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType, const VkVideoTemporalLayers& temporal_layers, StdVideoAV1FrameType frame_type,
                                             uint32_t curPicOrderCntVal)
 {
     m_numRefFramesL0 = 0;
@@ -740,7 +740,7 @@ void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictu
     int32_t refFramePocListL1[STD_VIDEO_AV1_NUM_REF_FRAMES];
 
     for (int dpbId = 0; dpbId < m_maxDpbSize; dpbId++) {
-        if (GetRefCount(dpbId) != 0 && VkVideoTemporalLayers::CanReference(temporal_idx, m_DPB[dpbId].temporal_idx)) {
+        if (GetRefCount(dpbId) != 0 && temporal_layers.CanReference(m_DPB[dpbId].temporal_idx)) {
             if (m_DPB[dpbId].picOrderCntVal < curPicOrderCntVal) {
                 if (curPicOrderCntVal - m_DPB[dpbId].picOrderCntVal > 4) {
                     // Don't reference pics that are too old
