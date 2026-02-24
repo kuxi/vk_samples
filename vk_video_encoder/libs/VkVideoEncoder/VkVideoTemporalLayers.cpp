@@ -76,5 +76,5 @@ bool VkVideoTemporalLayers::CanReference(uint32_t current_temporal_index, uint32
 }
 
 bool VkVideoTemporalLayers::CanBeReferenced(int temporal_idx) const {
-    return PATTERN[pattern_index_] < 2;
+    return PATTERN[temporal_idx] < 2;
 }
