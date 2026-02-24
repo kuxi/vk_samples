@@ -21,6 +21,7 @@
 #include "VkCodecUtils/VulkanVideoImagePool.h"
 #include "VkVideoEncoder/VkVideoGopStructure.h"
 #include "VkVideoEncoder/VkVideoTemporalLayers.h"
+#include "VkEncoderConfigAV1.h"
 
 
 enum VkVideoEncoderAV1PrimaryRefType {
@@ -120,7 +121,7 @@ public:
     // 1. Init instance
     static VkEncDpbAV1 *CreateInstance(void);
     // 2. Init encode session
-    int32_t DpbSequenceStart(const VkVideoEncodeAV1CapabilitiesKHR& capabilities, uint32_t userDpbSize = 0, int32_t numBFrames = 0);
+    int32_t DpbSequenceStart(const VkSharedBaseObj<EncoderConfigAV1>& encoderConfig, uint32_t userDpbSize = 0);
     // 3. Start Picture - returns the allocated DPB index for this frame
     int8_t DpbPictureStart(StdVideoAV1FrameType frameType,
                            StdVideoAV1ReferenceName refName,
@@ -153,6 +154,7 @@ public:
                                                         bool bOverlayFrame);
     void ConfigureRefBufUpdate(bool bShownKeyFrameOrSwitch, bool bShowExistingFrame,
                                VkVideoEncoderAV1FrameUpdateType frameUpdateType);
+    void InvalidateStaleReferenceFrames(uint32_t pictureIdx, uint32_t curPicOrderCntVal, const StdVideoAV1SequenceHeader *seqHdr);
     int32_t GetRefreshFrameFlags(bool bShownKeyFrameOrSwitch, bool bShowExistingFrame);
 
     int32_t GetRefFrameDpbId(StdVideoAV1ReferenceName refName);

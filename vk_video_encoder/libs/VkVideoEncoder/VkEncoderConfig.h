@@ -693,6 +693,7 @@ public:
     VkVideoCapabilitiesKHR videoCapabilities;
     VkVideoEncodeCapabilitiesKHR videoEncodeCapabilities;
     VkVideoEncodeQuantizationMapCapabilitiesKHR quantizationMapCapabilities;
+    VkVideoEncodeQualityLevelPropertiesKHR qualityLevelProperties;
     VkVideoEncodeRateControlModeFlagBitsKHR rateControlMode;
     uint32_t totalBitrate;    // kbits/sec
     uint32_t maxTotalBitrate; // kbits/sec
