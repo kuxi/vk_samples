@@ -107,9 +107,6 @@ VkResult VkVideoEncoderAV1::InitEncoderCodec(VkSharedBaseObj<EncoderConfig>& enc
 {
     m_encoderConfig = encoderConfig->GetEncoderConfigAV1();
     assert(m_encoderConfig);
-    if (encoderConfig->gopStructure.GetTemporalLayerCount() == 3) {
-        m_temporal_layers.SetTemporalLayerCountToThree();
-    }
     if (m_encoderConfig->codec != VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR) {
         return VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR;
     }
@@ -322,9 +319,8 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
     }
 
     uint32_t flags = 0;
-    int temporal_layer = m_temporal_layers.GetTemporalLayer();
-    int temporal_idx = m_temporal_layers.GetTemporalPatternIdx();
-    bool isLastTl2 = temporal_idx == 3;
+    int temporal_layer = pFrameInfo->gopPosition.temporalLayer;
+    int temporal_idx = pFrameInfo->gopPosition.temporalIdx;
     if (m_encoderConfig->verbose) {
         std::cout << "About to encode tl " << temporal_layer << std::endl;
     }
@@ -337,14 +333,16 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
                         (m_numBFramesToEncode == 0 ? (1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME) :
                             (1 << STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME));
         }
+    } else if (pFrameInfo->gopPosition.temporalLayer == 1) {
+        flags = 1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME;
     }
-    StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, temporal_layer, flags, pFrameInfo->bIsReference);
+    StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, flags, pFrameInfo->bIsReference);
     if (m_encoderConfig->verbose) {
         std::cout << "Picked reference name: " << refNameToString(refName) << std::endl;
     }
-    InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, temporal_layer, refName);
+    InitializeFrameHeader(&m_stateAV1.m_sequenceHeader, pFrameInfo, refName);
     if (!pFrameInfo->bShowExistingFrame) {
-        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, m_temporal_layers, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
+        m_dpbAV1->SetupReferenceFrameGroups(pFrameInfo->gopPosition.pictureType, pFrameInfo->gopPosition, pFrameInfo->stdPictureInfo.frame_type, pFrameInfo->picOrderCntVal);
         // For B pictures, L1 must be non zero.  Switch to P picture if L1 is zero.
         if ((pFrameInfo->gopPosition.pictureType == VkVideoGopStructure::FRAME_TYPE_B) && (m_dpbAV1->GetNumRefsL1()  == 0)) {
             pFrameInfo->gopPosition.pictureType = VkVideoGopStructure::FRAME_TYPE_P;
@@ -370,7 +368,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
         m_dpbAV1->DpbPictureEnd(dpbIndx, encodeFrameInfo->setupImageResource/*nullptr*/, &m_stateAV1.m_sequenceHeader,
                                 pFrameInfo->bShowExistingFrame, pFrameInfo->bShownKeyFrameOrSwitch,
                                 pFrameInfo->stdPictureInfo.flags.error_resilient_mode,
-                                pFrameInfo->bOverlayFrame, false,
+                                pFrameInfo->bOverlayFrame,
                                 refName, frameUpdateType);
         return VK_SUCCESS;
     }
@@ -570,7 +568,6 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
                             pFrameInfo->bShowExistingFrame, pFrameInfo->bShownKeyFrameOrSwitch,
                             pFrameInfo->stdPictureInfo.flags.error_resilient_mode,
                             pFrameInfo->bOverlayFrame,
-                            isLastTl2,
                             refName, frameUpdateType);
 
 
@@ -683,12 +680,11 @@ VkResult VkVideoEncoderAV1::EncodeFrame(VkSharedBaseObj<VkVideoEncodeFrameInfo>&
         }
     }
 
-    // Update RC and temporal layering pattern
-    m_temporal_layers.BeforeEncode(pFrameInfo->bIsKeyFrame);
+    // Update RC
     aom::AV1FrameParamsRTC params;
     params.frame_type = pFrameInfo->bIsKeyFrame ? aom::kKeyFrame : aom::kInterFrame;
     params.spatial_layer_id = 0;
-    params.temporal_layer_id = m_temporal_layers.GetTemporalLayer();
+    params.temporal_layer_id = encodeFrameInfo->gopPosition.temporalLayer;
     if (m_rateControlInfo.rateControlMode == VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR) {
         aom::FrameDropDecision decision = m_aom_rtc->ComputeQP(params);
         if (decision == aom::kFrameDropDecisionDrop) {
@@ -792,7 +788,6 @@ VkResult VkVideoEncoderAV1::HandleCtrlCmd(VkSharedBaseObj<VkVideoEncodeFrameInfo
 }
 
 void VkVideoEncoderAV1::InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequenceHdr, VkVideoEncodeFrameInfoAV1* pFrameInfo,
-                                              int temporal_layer,
                                               StdVideoAV1ReferenceName& refName)
 {
     // No overlay frame support. Instead display the ARF, ARF2 using show_existing_frame=1
@@ -880,7 +875,7 @@ void VkVideoEncoderAV1::InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequen
     pStdPictureInfo->pExtensionHeader = &pFrameInfo->stdExtensionHeader;
 
     pFrameInfo->stdExtensionHeader.spatial_id = 0;
-    pFrameInfo->stdExtensionHeader.temporal_id = temporal_layer;
+    pFrameInfo->stdExtensionHeader.temporal_id = pFrameInfo->gopPosition.temporalLayer;
 
     if (m_encoderConfig->enableTiles) {
         pStdPictureInfo->pTileInfo = &pFrameInfo->stdTileInfo;

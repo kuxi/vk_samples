@@ -27,18 +27,23 @@ class VkVideoTemporalLayers {
 public:
     VkVideoTemporalLayers();
 
+    void SetTemporalLayerCountToOne();
     void SetTemporalLayerCountToThree();
 
-    uint32_t GetTemporalLayer() const;
+    uint32_t GetTemporalLayer(int temporal_idx) const;
     uint32_t GetTemporalPatternIdx() const;
     uint32_t GetTemporalPatternLength() const;
+    uint8_t GetTemporalLayerCount() const;
     void BeforeEncode(bool is_keyframe);
 
-    // Returns true if frames of `current_temporal_layer` can reference frames of `other_temporal_layer`
-    bool CanReference(uint32_t other_temporal_layer) const;
+    // Returns true if frames of the current temporal layer can reference frames of `other_temporal_layer`
+    static bool CanReference(uint32_t current_temporal_index, uint32_t other_temporal_index);
+
+    // Returns true if frames of the current temporal layer can be referenced by future frames
+    bool CanBeReferenced(int temporal_idx) const;
 
 private:
-    uint32_t temporal_layer_count_;
+    uint8_t temporal_layer_count_;
     uint32_t pattern_index_;
     uint32_t pattern_length_;
 };

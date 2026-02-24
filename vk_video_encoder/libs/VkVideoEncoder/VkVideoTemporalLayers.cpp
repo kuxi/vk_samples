@@ -23,24 +23,32 @@ uint32_t PATTERN[4] = {
 uint32_t PATTERN_LENGTH = 4;
 
 VkVideoTemporalLayers::VkVideoTemporalLayers()
-    : temporal_layer_count_(1)
-    , pattern_index_(0)
-    , pattern_length_(1)
-{ }
+    : pattern_index_(0)
+{ 
+    SetTemporalLayerCountToOne();
+}
+
+void VkVideoTemporalLayers::SetTemporalLayerCountToOne() {
+    temporal_layer_count_ = 1;
+    pattern_length_ = 1;
+}
 
 void VkVideoTemporalLayers::SetTemporalLayerCountToThree() {
     temporal_layer_count_ = 3;
     pattern_length_ = PATTERN_LENGTH;
 }
 
-uint32_t VkVideoTemporalLayers::GetTemporalLayer() const {
-    return PATTERN[pattern_index_];
+uint32_t VkVideoTemporalLayers::GetTemporalLayer(int temporal_idx) const {
+    return PATTERN[temporal_idx];
 }
 uint32_t VkVideoTemporalLayers::GetTemporalPatternIdx() const {
     return pattern_index_;
 }
 uint32_t VkVideoTemporalLayers::GetTemporalPatternLength() const {
     return pattern_length_;
+}
+uint8_t VkVideoTemporalLayers::GetTemporalLayerCount() const {
+    return temporal_layer_count_;
 }
 
 void VkVideoTemporalLayers::BeforeEncode(bool is_keyframe) {
@@ -51,23 +59,22 @@ void VkVideoTemporalLayers::BeforeEncode(bool is_keyframe) {
     }
 }
 
-bool VkVideoTemporalLayers::CanReference(uint32_t other_pattern_idx) const {
+bool VkVideoTemporalLayers::CanReference(uint32_t current_temporal_index, uint32_t other_temporal_index) {
     // we want the following pattern
     //     2     2
     //    /     /
     //   /   1-/
     //  /   /   
     // 0-----------0 ....
-    if (other_pattern_idx >= pattern_length_) {
-        assert(!"Invalid pattern index");
-        return false;
-    }
-    if (pattern_index_ == 3) {
-        return other_pattern_idx == 2;
-    } else if (other_pattern_idx == 0) {
+    if (current_temporal_index == 3) {
+        return other_temporal_index == 2;
+    } else if (other_temporal_index == 0) {
         return true;
     } else {
         return false;
     }
 }
 
+bool VkVideoTemporalLayers::CanBeReferenced(int temporal_idx) const {
+    return PATTERN[pattern_index_] < 2;
+}

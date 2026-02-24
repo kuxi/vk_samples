@@ -20,7 +20,6 @@
 #include "VkVideoEncoderDef.h"
 #include "VkCodecUtils/VulkanVideoImagePool.h"
 #include "VkVideoEncoder/VkVideoGopStructure.h"
-#include "VkVideoEncoder/VkVideoTemporalLayers.h"
 #include "VkEncoderConfigAV1.h"
 
 
@@ -134,7 +133,6 @@ public:
                          const StdVideoAV1SequenceHeader *seqHdr,
                          bool bShowExistingFrame, bool bShownKeyFrameOrSwitch,
                          bool bErrorResilientMode, bool bOverlayFrame,
-                         bool isLastTl2,
                          StdVideoAV1ReferenceName refName,
                          VkVideoEncoderAV1FrameUpdateType frameUpdateType);
     void DpbDestroy();
@@ -148,7 +146,6 @@ public:
     void FillStdReferenceInfo(uint8_t dpbIdx, StdVideoEncodeAV1ReferenceInfo* pStdReferenceInfo);
 
     StdVideoAV1ReferenceName AssignReferenceFrameType(VkVideoGopStructure::FrameType pictureType,
-                                                      int temporal_layer,
                                                       uint32_t refNameFlags, bool bRefPicFlag);
     VkVideoEncoderAV1FrameUpdateType GetFrameUpdateType(StdVideoAV1ReferenceName refName,
                                                         bool bOverlayFrame);
@@ -175,10 +172,10 @@ public:
                                   bool bOverlayFrame);
     void UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExistingFrame,
                            StdVideoAV1ReferenceName refName,
-                           VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2);
+                           VkVideoEncoderAV1FrameUpdateType frameUpdateType);
 
     void SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType,
-                                   const VkVideoTemporalLayers& temporal_layers,
+                                   const VkVideoGopStructure::GopPosition& gopPos,
                                    StdVideoAV1FrameType frameType,
                                    uint32_t curPicOrderCntVal);
     void DumpState();
@@ -275,6 +272,7 @@ private:
     StdVideoAV1ReferenceName m_lastLastRefNameInUse;
 
     uint64_t        m_lastKeyFrameTimeStamp;
+    uint32_t        m_temporal_pattern_length_;
 
 };
 

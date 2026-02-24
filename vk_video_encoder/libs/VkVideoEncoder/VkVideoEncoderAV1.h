@@ -21,7 +21,6 @@
 #include "VkVideoEncoder/VkVideoEncoder.h"
 #include "VkVideoEncoder/VkVideoEncoderStateAV1.h"
 #include "VkVideoEncoder/VkEncoderConfigAV1.h"
-#include "VkVideoEncoder/VkVideoTemporalLayers.h"
 #include "av1/ratectrl_rtc.h"
 
 class VkVideoEncoderAV1 : public VkVideoEncoder
@@ -196,8 +195,7 @@ private:
     }
 
     void InitializeFrameHeader(StdVideoAV1SequenceHeader* pSequenceHdr, VkVideoEncodeFrameInfoAV1* pFrameInfo,
-            int temporal_layer,
-                               StdVideoAV1ReferenceName& refName);
+            StdVideoAV1ReferenceName& refName);
     void DumpFrameInfo(VkVideoEncodeFrameInfoAV1* frame);
 
     VkSharedBaseObj<EncoderConfigAV1>   m_encoderConfig;
@@ -209,7 +207,6 @@ private:
     uint32_t                            m_numBFramesToEncode;
     std::set<uint32_t>                  m_batchFramesIndxSetToAssemble;
     std::vector<std::vector<uint8_t>>   m_bitstream;
-    VkVideoTemporalLayers               m_temporal_layers;
     std::unique_ptr<aom::AV1RateControlRTC> m_aom_rtc;
 
 };

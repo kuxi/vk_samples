@@ -25,6 +25,7 @@
 #include <functional>
 #include <iostream>
 #include <iomanip>
+#include "VkVideoEncoder/VkVideoTemporalLayers.h"
 
 static const uint32_t MAX_GOP_SIZE = 64;
 
@@ -52,13 +53,15 @@ public:
     };
 
     struct GopPosition {
-        uint32_t   inputOrder;  // input order in the IDR sequence
-        uint32_t   encodeOrder; // encode order in the Gop
-        uint8_t    inGop;       // The position in Gop in input order
-        int8_t     numBFrames;  // Number of B frames in this part of the Gop, -1 if not a B frame
-        int8_t     bFramePos;   // The B position in Gop, -1 if not a B frame
+        uint32_t   inputOrder;    // input order in the IDR sequence
+        uint32_t   encodeOrder;   // encode order in the Gop
+        uint8_t    inGop;         // The position in Gop in input order
+        int8_t     numBFrames;    // Number of B frames in this part of the Gop, -1 if not a B frame
+        int8_t     bFramePos;     // The B position in Gop, -1 if not a B frame
         FrameType  pictureType;   // The type of the picture
-        uint32_t   flags;       // one or multiple of flags of type Flags above
+        uint8_t    temporalLayer; // The temporal layer of the picture
+        int32_t    temporalIdx;   // The current index in the temporal pattern
+        uint32_t   flags;         // one or multiple of flags of type Flags above
 
         GopPosition(uint32_t positionInGopInInputOrder)
         : inputOrder(positionInGopInInputOrder)
@@ -67,6 +70,8 @@ public:
         , numBFrames(-1)
         , bFramePos(-1)
         , pictureType(FRAME_TYPE_INVALID)
+        , temporalLayer(0)
+        , temporalIdx(0)
         , flags(0)
         {}
     };
@@ -120,8 +125,24 @@ public:
     uint8_t GetConsecutiveBFrameCount() const { return m_consecutiveBFrameCount; }
 
     // specifies the number of H.264/5 sub-layers that the application intends to use.
-    void SetTemporalLayerCount(uint8_t temporalLayerCount) { m_temporalLayerCount = temporalLayerCount; }
-    uint8_t GetTemporalLayerCount() const { return m_temporalLayerCount; }
+    void SetTemporalLayerCount(uint8_t temporalLayerCount) { 
+        if (temporalLayerCount != 1 && temporalLayerCount != 3) {
+            assert(!"Invalid temporal layer count");
+            return;
+        }
+        if (temporalLayerCount == 1) {
+            m_temporal_layers.SetTemporalLayerCountToOne();
+        }
+        if (temporalLayerCount == 3) {
+            m_temporal_layers.SetTemporalLayerCountToThree();
+        }
+    }
+    uint8_t GetTemporalLayerCount() const {
+        return m_temporal_layers.GetTemporalLayerCount();
+    }
+    int32_t GetTemporalPatternLength() const {
+        return m_temporal_layers.GetTemporalPatternLength();
+    }
 
     void SetClosedGop() { m_closedGop = true; }
     bool IsClosedGop() { return m_closedGop; }
@@ -163,6 +184,8 @@ public:
             gopPos.pictureType = FRAME_TYPE_IDR;
             gopPos.inputOrder = 0;  // reset the IDR sequence
             gopPos.flags |= FLAGS_IS_REF | FLAGS_CLOSE_GOP;
+            gopPos.temporalLayer = 0;
+            gopPos.temporalIdx = 0;
             gopState.lastRefInInputOrder  = 0;
             gopState.lastRefInEncodeOrder = 0;
             gopState.positionInInputOrder = 1U; // next frame value
@@ -174,6 +197,8 @@ public:
         // consecutiveBFrameCount can be modified before the IDR sequence
         uint8_t consecutiveBFrameCount = m_consecutiveBFrameCount;
         gopPos.inGop = (uint8_t)(gopState.positionInInputOrder % m_gopFrameCount);
+        gopPos.temporalIdx = gopPos.inGop % GetTemporalPatternLength();
+        gopPos.temporalLayer = m_temporal_layers.GetTemporalLayer(gopPos.temporalIdx);
 
         if (gopPos.inGop == 0) {
             // This is the start of a new (open or close) GOP.
@@ -244,7 +269,9 @@ public:
                 gopPos.encodeOrder = gopState.positionInInputOrder;
             }
 
-            gopPos.flags |= FLAGS_IS_REF;
+            if (m_temporal_layers.CanBeReferenced(gopPos.temporalIdx)) {
+                gopPos.flags |= FLAGS_IS_REF;
+            }
             gopState.lastRefInInputOrder  = gopState.positionInInputOrder;
             gopState.lastRefInEncodeOrder = gopPos.encodeOrder;
         }
@@ -272,10 +299,10 @@ private:
     uint8_t               m_gopFrameCount;
     uint8_t               m_consecutiveBFrameCount;
     uint8_t               m_gopFrameCycle;
-    uint8_t               m_temporalLayerCount;
     uint32_t              m_idrPeriod; // 0 means unlimited GOP with no IDRs.
     FrameType             m_lastFrameType;
     FrameType             m_preClosedGopAnchorFrameType;
     uint32_t              m_closedGop : 1;
+    VkVideoTemporalLayers m_temporal_layers;
 };
 #endif /* _VKVIDEOENCODER_VKVIDEOGOPSTRUCTURE_H_ */

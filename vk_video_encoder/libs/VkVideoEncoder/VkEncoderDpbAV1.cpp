@@ -140,6 +140,7 @@ void VkEncDpbAV1::DpbDeinit()
     m_lastLastRefNameInUse = STD_VIDEO_AV1_REFERENCE_NAME_INVALID;
 
     m_lastKeyFrameTimeStamp = 0;
+    m_temporal_pattern_length_ = 0;
 }
 
 void VkEncDpbAV1::DpbDestroy()
@@ -194,6 +195,8 @@ int32_t VkEncDpbAV1::DpbSequenceStart(const VkSharedBaseObj<EncoderConfigAV1>& e
     m_lastLastRefNameInUse = (numBFrames == 0) ? STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME :
                                                  STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME;
 
+    m_temporal_pattern_length_ = encoderConfig->gopStructure.GetTemporalPatternLength();
+
     return 0;
 }
 
@@ -239,7 +242,6 @@ int8_t VkEncDpbAV1::DpbPictureEnd(int8_t dpbIndx, VkSharedBaseObj<VulkanVideoIma
                          const StdVideoAV1SequenceHeader *seqHdr,
                          bool bShowExistingFrame, bool bShownKeyFrameOrSwitch,
                          bool bErrorResilientMode, bool bOverlayFrame,
-                         bool isLastTl2,
                          StdVideoAV1ReferenceName refName,
                          VkVideoEncoderAV1FrameUpdateType frameUpdateType)
 {
@@ -248,7 +250,7 @@ int8_t VkEncDpbAV1::DpbPictureEnd(int8_t dpbIndx, VkSharedBaseObj<VulkanVideoIma
     }
 
     UpdateRefBufIdMap(bShownKeyFrameOrSwitch, bShowExistingFrame,
-                      refName, frameUpdateType, isLastTl2);
+                      refName, frameUpdateType);
     UpdateRefFrameDpbIdMap(dpbIndx);
     UpdatePrimaryRefBufIdMap(refName, bShowExistingFrame,
                              bErrorResilientMode, bOverlayFrame);
@@ -332,16 +334,10 @@ int32_t VkEncDpbAV1::GetOverlayRefBufId(int32_t picOrderCntVal)
     return overlayRefBufId;
 }
 
-StdVideoAV1ReferenceName VkEncDpbAV1::AssignReferenceFrameType(VkVideoGopStructure::FrameType pictureType, int temporal_layer,
-                                                               uint32_t refNameFlags, bool bRefPicFlag)
+StdVideoAV1ReferenceName VkEncDpbAV1::AssignReferenceFrameType(
+        VkVideoGopStructure::FrameType pictureType, uint32_t refNameFlags,
+        bool bRefPicFlag)
 {
-    if (temporal_layer == 0) {
-        return STD_VIDEO_AV1_REFERENCE_NAME_LAST_FRAME;
-    } else if (temporal_layer == 1) {
-        return STD_VIDEO_AV1_REFERENCE_NAME_LAST2_FRAME;
-    } else {
-        return STD_VIDEO_AV1_REFERENCE_NAME_LAST3_FRAME;
-    }
     StdVideoAV1ReferenceName refName;
     if ((pictureType == VkVideoGopStructure::FRAME_TYPE_IDR) ||
         ((refNameFlags >> STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME) & 1)) {
@@ -521,9 +517,7 @@ void VkEncDpbAV1::InvalidateStaleReferenceFrames(uint32_t pictureIdx, uint32_t c
 
 
 VkVideoEncoderAV1PrimaryRefType VkEncDpbAV1::GetPrimaryRefType(StdVideoAV1ReferenceName refName,
-                                                               bool bErrorResilientMode, bool bOverlayFrame)
-{
-    // TODO: wtf does this do?
+                                                               bool bErrorResilientMode, bool bOverlayFrame) {
     if ((refName == STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME) || bErrorResilientMode) {
         return (m_maxRefFramesL1 > 0) ? BRF_FRAME : REGULAR_FRAME;
     } else if (bOverlayFrame) {
@@ -693,7 +687,7 @@ void VkEncDpbAV1::UpdatePrimaryRefBufIdMap(StdVideoAV1ReferenceName refName,
 
 void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExistingFrame,
                                     StdVideoAV1ReferenceName refName,
-                                    VkVideoEncoderAV1FrameUpdateType frameUpdateType, bool isLastTl2)
+                                    VkVideoEncoderAV1FrameUpdateType frameUpdateType)
 {
     // For shown key frame and S-frames virtual buffer mapping does not change
     if (bShownKeyFrameOrSwitch) {
@@ -701,6 +695,8 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
     }
     // By never updating, we essentially enforce each reference to always refer to the same vbi slot.
     return;
+    // TODO: this is old code, used to be passed in as parameter - review whether I need to readd a parameter
+    bool isLastTl2 = false;
     if (frameUpdateType == LF_UPDATE) {
         // Going to update TL0
         // Point all refs to vbi 1
@@ -783,8 +779,10 @@ void VkEncDpbAV1::UpdateRefBufIdMap(bool bShownKeyFrameOrSwitch, bool bShowExist
 
 }
 
-void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictureType, const VkVideoTemporalLayers& temporal_layers, StdVideoAV1FrameType frame_type,
-                                            uint32_t curPicOrderCntVal)
+void VkEncDpbAV1::SetupReferenceFrameGroups(
+        VkVideoGopStructure::FrameType pictureType,
+        const VkVideoGopStructure::GopPosition& gopPos,
+        StdVideoAV1FrameType frame_type, uint32_t curPicOrderCntVal)
 {
     m_numRefFramesL0 = 0;
     m_numRefFramesL1 = 0;
@@ -811,9 +809,9 @@ void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictu
     int32_t refFramePocListL1[STD_VIDEO_AV1_NUM_REF_FRAMES];
 
     for (int dpbId = 0; dpbId < m_maxDpbSize; dpbId++) {
-        if (GetRefCount(dpbId) != 0 && temporal_layers.CanReference(m_DPB[dpbId].temporal_idx)) {
+        if (GetRefCount(dpbId) != 0 && VkVideoTemporalLayers::CanReference(gopPos.temporalIdx, m_DPB[dpbId].temporal_idx)) {
             if (m_DPB[dpbId].picOrderCntVal < curPicOrderCntVal) {
-                if (curPicOrderCntVal - m_DPB[dpbId].picOrderCntVal > temporal_layers.GetTemporalPatternLength()) {
+                if (curPicOrderCntVal - m_DPB[dpbId].picOrderCntVal > m_temporal_pattern_length_) {
                     // Don't reference pics that are too old
                     continue;
                 }
