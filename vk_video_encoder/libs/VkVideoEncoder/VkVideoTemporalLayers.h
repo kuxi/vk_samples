@@ -29,17 +29,18 @@ public:
 
     void SetTemporalLayerCountToThree();
 
-    int GetTemporalLayer() const;
-    int GetTemporalPatternIdx() const;
+    uint32_t GetTemporalLayer() const;
+    uint32_t GetTemporalPatternIdx() const;
+    uint32_t GetTemporalPatternLength() const;
     void BeforeEncode(bool is_keyframe);
 
     // Returns true if frames of `current_temporal_layer` can reference frames of `other_temporal_layer`
-    bool CanReference(int other_temporal_layer) const;
+    bool CanReference(uint32_t other_temporal_layer) const;
 
 private:
-    int temporal_layer_count_;
-    int pattern_index_;
-    int pattern_length_;
+    uint32_t temporal_layer_count_;
+    uint32_t pattern_index_;
+    uint32_t pattern_length_;
 };
 #endif /* _VKVIDEOENCODER_VKVIDEOTEMPORALLAYERS_H_ */
 

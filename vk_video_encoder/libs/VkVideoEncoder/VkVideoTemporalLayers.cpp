@@ -16,11 +16,11 @@
 
 #include "VkVideoTemporalLayers.h"
 
-int PATTERN[4] = {
+uint32_t PATTERN[4] = {
     0, 2, 1, 2
 };
 
-int PATTERN_LENGTH = 4;
+uint32_t PATTERN_LENGTH = 4;
 
 VkVideoTemporalLayers::VkVideoTemporalLayers()
     : temporal_layer_count_(1)
@@ -33,11 +33,14 @@ void VkVideoTemporalLayers::SetTemporalLayerCountToThree() {
     pattern_length_ = PATTERN_LENGTH;
 }
 
-int VkVideoTemporalLayers::GetTemporalLayer() const {
+uint32_t VkVideoTemporalLayers::GetTemporalLayer() const {
     return PATTERN[pattern_index_];
 }
-int VkVideoTemporalLayers::GetTemporalPatternIdx() const {
+uint32_t VkVideoTemporalLayers::GetTemporalPatternIdx() const {
     return pattern_index_;
+}
+uint32_t VkVideoTemporalLayers::GetTemporalPatternLength() const {
+    return pattern_length_;
 }
 
 void VkVideoTemporalLayers::BeforeEncode(bool is_keyframe) {
@@ -48,14 +51,14 @@ void VkVideoTemporalLayers::BeforeEncode(bool is_keyframe) {
     }
 }
 
-bool VkVideoTemporalLayers::CanReference(int other_pattern_idx) const {
+bool VkVideoTemporalLayers::CanReference(uint32_t other_pattern_idx) const {
     // we want the following pattern
     //     2     2
     //    /     /
     //   /   1-/
     //  /   /   
     // 0-----------0 ....
-    if (other_pattern_idx < 0 || other_pattern_idx >= pattern_length_) {
+    if (other_pattern_idx >= pattern_length_) {
         assert(!"Invalid pattern index");
         return false;
     }

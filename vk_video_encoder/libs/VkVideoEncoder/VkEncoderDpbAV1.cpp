@@ -742,7 +742,7 @@ void VkEncDpbAV1::SetupReferenceFrameGroups(VkVideoGopStructure::FrameType pictu
     for (int dpbId = 0; dpbId < m_maxDpbSize; dpbId++) {
         if (GetRefCount(dpbId) != 0 && temporal_layers.CanReference(m_DPB[dpbId].temporal_idx)) {
             if (m_DPB[dpbId].picOrderCntVal < curPicOrderCntVal) {
-                if (curPicOrderCntVal - m_DPB[dpbId].picOrderCntVal > 4) {
+                if (curPicOrderCntVal - m_DPB[dpbId].picOrderCntVal > temporal_layers.GetTemporalPatternLength()) {
                     // Don't reference pics that are too old
                     continue;
                 }
