@@ -334,7 +334,7 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
                     (1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME) :
                     (1 << STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME);
             }
-            else {
+            else if (pFrameInfo->gopPosition.temporalLayer == 1) {
                 flags = 1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME;
             }
         }
