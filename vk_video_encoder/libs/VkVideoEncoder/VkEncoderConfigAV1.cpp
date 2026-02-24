@@ -210,6 +210,10 @@ VkResult EncoderConfigAV1::InitDeviceCapabilities(const VulkanDeviceContext* vkD
         std::cout << "\t\t\t" << "maxActiveReferencePictures: " << videoCapabilities.maxActiveReferencePictures << std::endl;
     }
 
+    // The following overwrites some cmndline flags which is annoying.
+    // Also, the vulkan api call segfaults on RTX
+    return VK_SUCCESS;
+
     result = VulkanVideoCapabilities::GetPhysicalDeviceVideoEncodeQualityLevelProperties<VkVideoEncodeAV1QualityLevelPropertiesKHR, VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_QUALITY_LEVEL_PROPERTIES_KHR>
                                                                                 (vkDevCtx, videoCoreProfile, qualityLevel,
                                                                                  qualityLevelProperties,
