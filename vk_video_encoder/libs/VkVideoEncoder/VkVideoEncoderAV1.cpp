@@ -329,12 +329,15 @@ VkResult VkVideoEncoderAV1::ProcessDpb(VkSharedBaseObj<VkVideoEncodeFrameInfo>& 
             (encodeFrameInfo->gopPosition.inputOrder == encodeFrameInfo->gopPosition.encodeOrder)) {
                 flags = 1 << STD_VIDEO_AV1_REFERENCE_NAME_INTRA_FRAME;
         } else {
-            flags = (m_encoderConfig->gopStructure.GetConsecutiveBFrameCount() == 0) ? 0 :
-                        (m_numBFramesToEncode == 0 ? (1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME) :
-                            (1 << STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME));
+            if (m_encoderConfig->gopStructure.GetConsecutiveBFrameCount() != 0) {
+                flags = m_numBFramesToEncode == 0 ?
+                    (1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME) :
+                    (1 << STD_VIDEO_AV1_REFERENCE_NAME_ALTREF_FRAME);
+            }
+            else {
+                flags = 1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME;
+            }
         }
-    } else if (pFrameInfo->gopPosition.temporalLayer == 1) {
-        flags = 1 << STD_VIDEO_AV1_REFERENCE_NAME_GOLDEN_FRAME;
     }
     StdVideoAV1ReferenceName refName = m_dpbAV1->AssignReferenceFrameType(pFrameInfo->gopPosition.pictureType, flags, pFrameInfo->bIsReference);
     if (m_encoderConfig->verbose) {
